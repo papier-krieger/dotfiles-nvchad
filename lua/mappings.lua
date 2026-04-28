@@ -50,3 +50,4 @@ map("n", "L", "<cmd>bnext<CR>", { desc = "Siguiente pestaña" })
 map("n", "H", "<cmd>bprevious<CR>", { desc = "Pestaña anterior" })
 
 
+
