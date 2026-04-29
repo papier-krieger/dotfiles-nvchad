@@ -1,5 +1,9 @@
 require "nvchad.options"
 
+
+-- Usar tree-sitter de cargo en vez de nvm
+vim.env.PATH = vim.env.HOME .. "/.cargo/bin:" .. vim.env.PATH
+
 -- 1. Seguridad y Edición
 vim.opt.undofile = true
 vim.opt.undolevels = 1000
