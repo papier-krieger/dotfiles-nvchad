@@ -12,7 +12,7 @@ return {
     end,
   },
 
-  -- SOPORTE WEB (HTML/CSS)
+  -- Soporte para lenguajes web (HTML/CSS/JS)
   {
     "nvim-treesitter/nvim-treesitter",
     opts = {
@@ -23,30 +23,29 @@ return {
     },
   },
 
-  --  AUTO-TAG (Cierra etiquetas HTML solo)
+  -- Cierre automático de etiquetas HTML
   {
     "windwp/nvim-ts-autotag",
     ft = { "html", "javascriptreact", "typescriptreact" },
     opts = {},
   },
 
-
+  -- Resaltado de colores (hex, rgb, hsl) en el editor
   {
     "nvchad/nvim-colorizer.lua",
     opts = {
       user_default_options = {
-        names = false, -- No resalta palabras como "Blue", solo códigos hex/rgb
-        RRGGBBAA = true, -- Soporte para transparencia
-        rgb_fn = true, -- Soporte para funciones rgb() y rgba()
-        hsl_fn = true, -- Soporte para funciones hsl() y hsla()
-        css = true, -- Habilitar en archivos CSS
-        sass = { enable = true, parsers = { "css" }, }, -- Soporte para Sass
+        names = false,
+        RRGGBBAA = true,
+        rgb_fn = true,
+        hsl_fn = true,
+        css = true,
+        sass = { enable = true, parsers = { "css" } },
       },
     },
   },
 
-
-
+  -- Configuración del motor de autocompletado (nvim-cmp)
   {
     "hrsh7th/nvim-cmp",
     opts = function(_, opts)
@@ -54,33 +53,33 @@ return {
       local cmp = require "cmp"
 
       opts.mapping = {
-        -- 1. TAB: Intenta expandir directamente sin mostrar menú
+        -- 1. TAB: Inserta tabulación si hay espacio, o intenta expandir si hay texto
         ["<Tab>"] = cmp.mapping(function(fallback)
-          -- Forzamos la apertura y confirmación inmediata del primer resultado
-          cmp.complete({
-            reason = cmp.ContextReason.Manual,
-          })
-          
-          -- Pequeño retraso para que Emmet responda y confirmamos la primera opción
-          vim.defer_fn(function()
-            if cmp.visible() then
-              cmp.confirm({ select = true })
-            end
-          end, 10) 
+          local col = vim.fn.col('.') - 1
+          if col == 0 or vim.fn.getline('.'):sub(col, col):match('%s') then
+            fallback()
+          else
+            cmp.complete({ reason = cmp.ContextReason.Manual })
+            
+            vim.defer_fn(function()
+              if cmp.visible() then
+                cmp.confirm({ select = true })
+              else
+                fallback()
+              end
+            end, 10) 
+          end
         end, { "i", "s" }),
 
-        -- 2. CTRL + ESPACIO: Abre la lista para que puedas elegir
+        -- 2. CTRL + ESPACIO: Abre manualmente el menú de sugerencias
         ["<C-Space>"] = cmp.mapping.complete(),
 
-        -- 3. NAVEGACIÓN (Solo cuando el menú de Ctrl+Space está abierto)
+        -- 3. NAVEGACIÓN: Atajos para moverse dentro del menú abierto
         ["<C-n>"] = cmp.mapping.select_next_item(),
         ["<C-p>"] = cmp.mapping.select_prev_item(),
         ["<S-Tab>"] = cmp.mapping.select_prev_item(),
-        -- Enter para confirmar si estás eligiendo de la lista manual
         ["<CR>"] = cmp.mapping.confirm({ select = true }),
       }
     end,
   },
-
-
 }
