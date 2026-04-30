@@ -76,3 +76,14 @@ end, { desc = "Desplazar pestaña a la izquierda" })
 
 -- Copiar buffer a varios archivos. Uso: <leader>cp file1 file2 ... > /dev/null
 map("n", "<leader>cp", ":w !tee ", { desc = "Copiar archivo a múltiples destinos" })
+
+
+-- Comando personalizado para abrir todos los archivos de la carpeta actual
+vim.api.nvim_create_user_command("OpenAll", function()
+  vim.cmd "cd %:p:h" -- Fuerza a Neovim a entrar en la carpeta del archivo actual
+  vim.cmd "args * | silent argdo e"
+  print("📂 Archivos cargados en: " .. vim.fn.getcwd())
+end, {})
+
+-- Opcional: Un atajo de teclado para no tener que escribir :OpenAll
+vim.keymap.set("n", "<leader>oa", ":OpenAll<CR>", { desc = "Abrir todos los archivos (Open All)" })
