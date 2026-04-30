@@ -78,12 +78,43 @@ end, { desc = "Desplazar pestaña a la izquierda" })
 map("n", "<leader>cp", ":w !tee ", { desc = "Copiar archivo a múltiples destinos" })
 
 
--- Comando personalizado para abrir todos los archivos de la carpeta actual
-vim.api.nvim_create_user_command("OpenAll", function()
-  vim.cmd "cd %:p:h" -- Fuerza a Neovim a entrar en la carpeta del archivo actual
-  vim.cmd "args * | silent argdo e"
-  print("📂 Archivos cargados en: " .. vim.fn.getcwd())
-end, {})
 
--- Opcional: Un atajo de teclado para no tener que escribir :OpenAll
-vim.keymap.set("n", "<leader>oa", ":OpenAll<CR>", { desc = "Abrir todos los archivos (Open All)" })
+-- 1. Comando Maestro Inteligente (Acepta extensión opcional)
+-- Uso: :OpenAll         -> Abre todos los archivos con extensión (*.*)
+-- Uso: :OpenAll html    -> Abre solo archivos .html
+-- Nota: Limpia buffers de carpetas y evita abrir patrones vacíos.
+vim.api.nvim_create_user_command("OpenAll", function(opts)
+  -- Fuerza a Neovim a entrar en la carpeta del archivo actual (Sincroniza el Root)
+  vim.cmd "cd %:p:h"
+
+  -- LIMPIEZA: Recorre buffers y cierra directorios (netrw/nvim-tree) para limpiar la barra superior
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    local name = vim.api.nvim_buf_get_name(bufnr)
+    if name ~= "" and vim.fn.isdirectory(name) == 1 then
+      pcall(vim.cmd, "bd! " .. bufnr) -- Usa pcall y bd! para forzar cierre sin errores
+    end
+  end
+
+  -- DEFINICIÓN: Si no se pasa argumento usa *.* (archivos), si se pasa usa *.ext
+  local pattern = (opts.args ~= "") and ("*." .. opts.args) or "*.*"
+  
+  -- SEGURIDAD: Comprueba si existen archivos antes de intentar abrirlos (evita buffers fantasma)
+  local has_files = #vim.fn.glob(pattern, false, true) > 0
+
+  if has_files then
+    -- Carga los archivos en la lista de argumentos y los abre todos silenciosamente
+    vim.cmd("args " .. pattern .. " | silent argdo e")
+    print("📂 Archivos [" .. pattern .. "] cargados en: " .. vim.fn.getcwd())
+  else
+    -- Aviso amigable si la carpeta no contiene archivos de ese tipo
+    print("⚠️ No se encontraron archivos con el patrón: " .. pattern)
+  end
+end, { nargs = "?" })
+
+-- 2. Atajos Rápidos (Presionar rápido para evitar modo Insertar con 'o')
+map("n", "<leader>oa", ":OpenAll<CR>", { desc = "Abrir todos los archivos (*.*)" })
+map("n", "<leader>oh", ":OpenAll html<CR>", { desc = "Abrir todos los HTML" })
+map("n", "<leader>oc", ":OpenAll css<CR>", { desc = "Abrir todos los CSS" })
+map("n", "<leader>oj", ":OpenAll js<CR>", { desc = "Abrir todos los JS" })
+
+
