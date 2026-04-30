@@ -11,12 +11,6 @@ return {
     end,
   },
 
-
-  {
-    "windwp/nvim-ts-autotag",
-    ft = { "html", "javascriptreact", "typescriptreact" },
-    opts = {},
-  },
   {
     "nvchad/nvim-colorizer.lua",
     opts = {
@@ -59,4 +53,22 @@ return {
       }
     end,
   },
+
+  {
+    "kylechui/nvim-surround",
+    version = "*", -- Usa la última versión estable
+    event = "VeryLazy",
+    config = function()
+      require("nvim-surround").setup({})
+    end,
+  },
+
+  {
+    "windwp/nvim-ts-autotag",
+    ft = { "html", "javascript", "typescript", "javascriptreact", "typescriptreact", "svelte", "vue" },
+    config = function()
+      require("nvim-ts-autotag").setup()
+    end,
+  },
+
 }

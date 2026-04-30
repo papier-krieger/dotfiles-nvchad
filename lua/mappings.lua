@@ -46,21 +46,33 @@ end, { desc = "Cerrar Buffer con leader x" })
 -- Abrir/Cerrar barra lateral con Espacio + e (e de Explorer)
 map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle Explorer" })
 
--- Navegar por pestañas (buffers) con Shift + h / l
-map("n", "L", "<cmd>bnext<CR>", { desc = "Siguiente pestaña" })
-map("n", "H", "<cmd>bprevious<CR>", { desc = "Pestaña anterior" })
-
--- Mover buffers a los lados con Alt
-map("n", "<A-l>", function()
-  require("nvchad.tabufline").move_buf(1)
-end, { desc = "Mover buffer a la derecha" })
-
-map("n", "<A-h>", function()
-  require("nvchad.tabufline").move_buf(-1)
-end, { desc = "Mover buffer a la izquierda" })
 
 -- Mover líneas y bloques de código (Alt + j/k)
 map("n", "<A-j>", "<cmd>m .+1<cr>==", { desc = "Mover línea abajo" })
 map("n", "<A-k>", "<cmd>m .-2<cr>==", { desc = "Mover línea arriba" })
 map("v", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Mover bloque abajo" })
 map("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Mover bloque arriba" })
+
+
+-- Navegar por pestañas (buffers) siguiendo el orden visual de NvChad
+map("n", "L", function()
+  require("nvchad.tabufline").next()
+end, { desc = "Siguiente buffer (visual)" })
+
+map("n", "H", function()
+  require("nvchad.tabufline").prev()
+end, { desc = "Anterior buffer (visual)" })
+
+
+-- Mover la posición del buffer (Reordenar las pestañas)
+map("n", "<A-l>", function()
+  require("nvchad.tabufline").move_buf(1)
+end, { desc = "Desplazar pestaña a la derecha" })
+
+map("n", "<A-h>", function()
+  require("nvchad.tabufline").move_buf(-1)
+end, { desc = "Desplazar pestaña a la izquierda" })
+
+
+-- Copiar buffer a varios archivos. Uso: <leader>cp file1 file2 ... > /dev/null
+map("n", "<leader>cp", ":w !tee ", { desc = "Copiar archivo a múltiples destinos" })
