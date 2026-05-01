@@ -4,17 +4,15 @@ require "nvchad.mappings"
 
 local map = vim.keymap.set
 
-
--- Sincronizar el directorio raíz con el argumento de la terminal (Estilo VS Code)
+-- Sincronizar raíz estilo VS Code
 vim.api.nvim_create_autocmd("VimEnter", {
   callback = function()
-    local first_arg = vim.fn.argv(0)
-    if first_arg ~= "" and vim.fn.isdirectory(first_arg) == 1 then
-      vim.cmd("cd " .. vim.fn.fnameescape(first_arg))
+    local arg = vim.fn.argv(0)
+    if arg ~= "" and vim.fn.isdirectory(arg) == 1 then
+      vim.cmd("cd " .. vim.fn.fnameescape(vim.fn.fnamemodify(arg, ":p")))
     end
   end,
 })
-
 
 
 map("n", ";", ":", { desc = "CMD enter command mode" })
@@ -55,6 +53,8 @@ end, { desc = "Cerrar buffer actual" })
 map("n", "<leader>x", function()
   require("nvchad.tabufline").close_buffer()
 end, { desc = "Cerrar Buffer con leader x" })
+
+
 
 -- Abrir/Cerrar barra lateral con Espacio + e (e de Explorer)
 map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle Explorer" })
