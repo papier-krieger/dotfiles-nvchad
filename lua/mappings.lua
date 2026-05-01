@@ -4,6 +4,19 @@ require "nvchad.mappings"
 
 local map = vim.keymap.set
 
+
+-- Sincronizar el directorio raíz con el argumento de la terminal (Estilo VS Code)
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    local first_arg = vim.fn.argv(0)
+    if first_arg ~= "" and vim.fn.isdirectory(first_arg) == 1 then
+      vim.cmd("cd " .. vim.fn.fnameescape(first_arg))
+    end
+  end,
+})
+
+
+
 map("n", ";", ":", { desc = "CMD enter command mode" })
 map("i", "jk", "<ESC>")
 
@@ -79,13 +92,15 @@ map("n", "<leader>cp", ":w !tee ", { desc = "Copiar archivo a múltiples destino
 
 
 
--- 1. Comando Maestro Inteligente (Cargador de ficheros regulares)
+--- COMANDO OPENALL (Versión Nueva)
 -- Uso: :OpenAll      -> Abre todos los FICHEROS (con o sin extensión) e ignora carpetas.
 -- Uso: :OpenAll html -> Abre solo archivos .html
-vim.api.nvim_create_user_command("OpenAll", function(opts)
-  vim.cmd "cd %:p:h"
 
-  -- LIMPIEZA: Cierra buffers de directorios
+vim.api.nvim_create_user_command("OpenAll", function(opts)
+
+  local cwd = vim.fn.getcwd()
+  
+  -- 2. LIMPIEZA: Cierra buffers de directorios
   for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
     local name = vim.api.nvim_buf_get_name(bufnr)
     if name ~= "" and vim.fn.isdirectory(name) == 1 then
@@ -93,35 +108,37 @@ vim.api.nvim_create_user_command("OpenAll", function(opts)
     end
   end
 
-  local pattern
-  if opts.args ~= "" then
-    -- Si pides extensión (html, js), usamos el filtro clásico
-    pattern = "*." .. opts.args
-  else
-    -- Si es "ALL", buscamos todos los archivos regulares filtrando directorios
-    local all_items = vim.fn.globpath(vim.fn.getcwd(), "*", false, true)
-    local files_only = {}
-    for _, item in ipairs(all_items) do
-      if vim.fn.isdirectory(item) == 0 then
-        table.insert(files_only, vim.fn.fnameescape(item))
-      end
+  local files_to_open = {}
+  -- Usamos **/ para buscar en la carpeta actual y en cualquier subcarpeta
+  local pattern = (opts.args ~= "") and ("**/*." .. opts.args) or "**/*"
+  
+  local all_items = vim.fn.globpath(cwd, pattern, false, true)
+  
+  for _, item in ipairs(all_items) do
+    -- Solo archivos, ignorando carpetas pesadas o basura
+    if vim.fn.isdirectory(item) == 0 and 
+       not item:match("node_modules/") and 
+       not item:match("%.git/") then
+      table.insert(files_to_open, vim.fn.fnameescape(item))
     end
-    pattern = table.concat(files_only, " ")
   end
 
-
-  -- SEGURIDAD: Comprobar si hay algo para abrir
-  if pattern ~= "" and #pattern > 0 then
-    vim.cmd("args " .. pattern .. " | silent argdo e")
-    print("📂 Ficheros cargados desde: " .. vim.fn.getcwd())
+  if #files_to_open > 0 then
+    -- 'args' carga la lista y 'argdo e' abre los buffers
+    vim.cmd("args " .. table.concat(files_to_open, " ") .. " | silent argdo e")
+    vim.cmd "argument 1" 
+    print("🚀 Modo VS Code: " .. #files_to_open .. " archivos cargados desde " .. vim.fn.fnamemodify(cwd, ":t"))
   else
-    print("⚠️ No se encontraron ficheros para abrir.")
+    print("⚠️ No se encontraron archivos en: " .. cwd)
   end
 end, { nargs = "?" })
--- 2. Atajos Rápidos (Presionar rápido para evitar modo Insertar con 'o')
-map("n", "<leader>oa", ":OpenAll<CR>", { desc = "Abrir todos los archivos (*.*)" })
+
+
+
+
+
+-- Atajos para OpenAll
+map("n", "<leader>oa", ":OpenAll<CR>", { desc = "Abrir todos los archivos" })
 map("n", "<leader>oh", ":OpenAll html<CR>", { desc = "Abrir todos los HTML" })
 map("n", "<leader>oc", ":OpenAll css<CR>", { desc = "Abrir todos los CSS" })
 map("n", "<leader>oj", ":OpenAll js<CR>", { desc = "Abrir todos los JS" })
-
-

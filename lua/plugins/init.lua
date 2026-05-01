@@ -80,6 +80,12 @@ return {
         enable = true,
         update_root = true,
       },
+
+      hijack_cursor = true,
+      hijack_directories = {
+        enable = true,
+        auto_open = true,
+      },
     },
   },
 
