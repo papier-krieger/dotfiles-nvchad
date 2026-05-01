@@ -79,38 +79,45 @@ map("n", "<leader>cp", ":w !tee ", { desc = "Copiar archivo a múltiples destino
 
 
 
--- 1. Comando Maestro Inteligente (Acepta extensión opcional)
--- Uso: :OpenAll         -> Abre todos los archivos con extensión (*.*)
--- Uso: :OpenAll html    -> Abre solo archivos .html
--- Nota: Limpia buffers de carpetas y evita abrir patrones vacíos.
+-- 1. Comando Maestro Inteligente (Cargador de ficheros regulares)
+-- Uso: :OpenAll      -> Abre todos los FICHEROS (con o sin extensión) e ignora carpetas.
+-- Uso: :OpenAll html -> Abre solo archivos .html
 vim.api.nvim_create_user_command("OpenAll", function(opts)
-  -- Fuerza a Neovim a entrar en la carpeta del archivo actual (Sincroniza el Root)
   vim.cmd "cd %:p:h"
 
-  -- LIMPIEZA: Recorre buffers y cierra directorios (netrw/nvim-tree) para limpiar la barra superior
+  -- LIMPIEZA: Cierra buffers de directorios
   for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
     local name = vim.api.nvim_buf_get_name(bufnr)
     if name ~= "" and vim.fn.isdirectory(name) == 1 then
-      pcall(vim.cmd, "bd! " .. bufnr) -- Usa pcall y bd! para forzar cierre sin errores
+      pcall(vim.cmd, "bd! " .. bufnr)
     end
   end
 
-  -- DEFINICIÓN: Si no se pasa argumento usa *.* (archivos), si se pasa usa *.ext
-  local pattern = (opts.args ~= "") and ("*." .. opts.args) or "*.*"
-  
-  -- SEGURIDAD: Comprueba si existen archivos antes de intentar abrirlos (evita buffers fantasma)
-  local has_files = #vim.fn.glob(pattern, false, true) > 0
-
-  if has_files then
-    -- Carga los archivos en la lista de argumentos y los abre todos silenciosamente
-    vim.cmd("args " .. pattern .. " | silent argdo e")
-    print("📂 Archivos [" .. pattern .. "] cargados en: " .. vim.fn.getcwd())
+  local pattern
+  if opts.args ~= "" then
+    -- Si pides extensión (html, js), usamos el filtro clásico
+    pattern = "*." .. opts.args
   else
-    -- Aviso amigable si la carpeta no contiene archivos de ese tipo
-    print("⚠️ No se encontraron archivos con el patrón: " .. pattern)
+    -- Si es "ALL", buscamos todos los archivos regulares filtrando directorios
+    local all_items = vim.fn.globpath(vim.fn.getcwd(), "*", false, true)
+    local files_only = {}
+    for _, item in ipairs(all_items) do
+      if vim.fn.isdirectory(item) == 0 then
+        table.insert(files_only, vim.fn.fnameescape(item))
+      end
+    end
+    pattern = table.concat(files_only, " ")
+  end
+
+
+  -- SEGURIDAD: Comprobar si hay algo para abrir
+  if pattern ~= "" and #pattern > 0 then
+    vim.cmd("args " .. pattern .. " | silent argdo e")
+    print("📂 Ficheros cargados desde: " .. vim.fn.getcwd())
+  else
+    print("⚠️ No se encontraron ficheros para abrir.")
   end
 end, { nargs = "?" })
-
 -- 2. Atajos Rápidos (Presionar rápido para evitar modo Insertar con 'o')
 map("n", "<leader>oa", ":OpenAll<CR>", { desc = "Abrir todos los archivos (*.*)" })
 map("n", "<leader>oh", ":OpenAll html<CR>", { desc = "Abrir todos los HTML" })
