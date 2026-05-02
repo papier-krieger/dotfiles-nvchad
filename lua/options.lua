@@ -50,3 +50,7 @@ vim.api.nvim_create_autocmd({ "InsertLeave", "TextChanged" }, {
     end
   end,
 })
+
+
+-- 4. Clipboard
+vim.opt.clipboard = "unnamedplus"
