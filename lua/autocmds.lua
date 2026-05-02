@@ -9,3 +9,11 @@ vim.filetype.add({
     [".bashrc"] = "bash",
   },
 })
+
+-- Turn off CapsLock when entering normal mode
+vim.api.nvim_create_autocmd("ModeChanged", {
+  pattern = "*:n*",
+  callback = function()
+    vim.fn.system("xset q | grep -q 'Caps Lock:.*on' && xdotool key Caps_Lock")
+  end,
+})
