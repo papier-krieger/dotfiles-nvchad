@@ -61,30 +61,57 @@ map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle Explorer" })
 
 
 -- Mover líneas y bloques de código (Alt + j/k)
-map("n", "<A-j>", "<cmd>m .+1<cr>==", { desc = "Mover línea abajo" })
-map("n", "<A-k>", "<cmd>m .-2<cr>==", { desc = "Mover línea arriba" })
-map("v", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Mover bloque abajo" })
-map("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Mover bloque arriba" })
+map("n", "<A-J>", "<cmd>m .+1<cr>==", { desc = "Mover línea abajo" })
+map("n", "<A-K>", "<cmd>m .-2<cr>==", { desc = "Mover línea arriba" })
+map("v", "<A-J>", ":m '>+1<CR>gv=gv", { desc = "Mover bloque abajo" })
+map("v", "<A-K>", ":m '<-2<CR>gv=gv", { desc = "Mover bloque arriba" })
 
 
--- Navegar por pestañas (buffers) siguiendo el orden visual de NvChad
-map("n", "L", function()
-  require("nvchad.tabufline").next()
-end, { desc = "Siguiente buffer (visual)" })
-
+-- --- NAVEGACIÓN DE BUFFERS (Pestañas de NvChad) ---
+-- Usamos H y L directamente porque son las más rápidas
 map("n", "H", function()
   require("nvchad.tabufline").prev()
-end, { desc = "Anterior buffer (visual)" })
+end, { desc = "Anterior buffer" })
+
+map("n", "L", function()
+  require("nvchad.tabufline").next()
+end, { desc = "Siguiente buffer" })
 
 
--- Mover la posición del buffer (Reordenar las pestañas)
-map("n", "<A-l>", function()
-  require("nvchad.tabufline").move_buf(1)
-end, { desc = "Desplazar pestaña a la derecha" })
 
-map("n", "<A-h>", function()
+-- --- NAVEGACIÓN DE PANTALLA (Estilo Vim original en Alt) ---
+-- Alt + k (Arriba) -> Tope de pantalla (H)
+map("n", "<A-k>", "H", { desc = "Saltar al tope de la pantalla" })
+
+-- Alt + m (Mitad) -> Centro de la pantalla (M)
+map("n", "<A-m>", "M", { desc = "Saltar al centro de la pantalla" })
+
+-- Alt + j (Abajo) -> Fondo de pantalla (L)
+map("n", "<A-j>", "L", { desc = "Saltar al fondo de la pantalla" })
+
+
+-- -- Alternativa: Navegación de diagnósticos (Errores/Warnings)
+-- map("n", "<A-j>", function()
+--   vim.diagnostic.goto_next({ float = { border = "rounded" } })
+--   vim.cmd("norm zz") -- Centra la pantalla en el error
+-- end, { desc = "Ir al siguiente error" })
+--
+-- map("n", "<A-k>", function()
+--   vim.diagnostic.goto_prev({ float = { border = "rounded" } })
+--   vim.cmd("norm zz") -- Centra la pantalla en el error
+-- end, { desc = "Ir al error anterior" })
+
+
+-- --- REORDENAR PESTAÑAS ---
+-- Para mover la posición de la pestaña actual en la barra
+map("n", "<A-H>", function()
   require("nvchad.tabufline").move_buf(-1)
 end, { desc = "Desplazar pestaña a la izquierda" })
+
+
+map("n", "<A-L>", function()
+  require("nvchad.tabufline").move_buf(1)
+end, { desc = "Desplazar pestaña a la derecha" })
 
 
 -- Copiar buffer a varios archivos. Uso: <leader>cp file1 file2 ... > /dev/null
