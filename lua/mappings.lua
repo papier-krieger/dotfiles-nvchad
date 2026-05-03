@@ -55,67 +55,51 @@ map("n", "<leader>x", function()
 end, { desc = "Cerrar Buffer con leader x" })
 
 
-
 -- Abrir/Cerrar barra lateral con Espacio + e (e de Explorer)
 map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle Explorer" })
 
 
--- Mover líneas y bloques de código (Alt + j/k)
-map("n", "<A-J>", "<cmd>m .+1<cr>==", { desc = "Mover línea abajo" })
-map("n", "<A-K>", "<cmd>m .-2<cr>==", { desc = "Mover línea arriba" })
-map("v", "<A-J>", ":m '>+1<CR>gv=gv", { desc = "Mover bloque abajo" })
-map("v", "<A-K>", ":m '<-2<CR>gv=gv", { desc = "Mover bloque arriba" })
-
-
--- --- NAVEGACIÓN DE BUFFERS (Pestañas de NvChad) ---
--- Usamos H y L directamente porque son las más rápidas
-map("n", "H", function()
-  require("nvchad.tabufline").prev()
-end, { desc = "Anterior buffer" })
-
-map("n", "L", function()
-  require("nvchad.tabufline").next()
-end, { desc = "Siguiente buffer" })
-
-
-
--- --- NAVEGACIÓN DE PANTALLA (Estilo Vim original en Alt) ---
--- Alt + k (Arriba) -> Tope de pantalla (H)
-map("n", "<A-k>", "H", { desc = "Saltar al tope de la pantalla" })
-
--- Alt + m (Mitad) -> Centro de la pantalla (M)
-map("n", "<A-m>", "M", { desc = "Saltar al centro de la pantalla" })
-
--- Alt + j (Abajo) -> Fondo de pantalla (L)
-map("n", "<A-j>", "L", { desc = "Saltar al fondo de la pantalla" })
-
-
--- -- Alternativa: Navegación de diagnósticos (Errores/Warnings)
--- map("n", "<A-j>", function()
---   vim.diagnostic.goto_next({ float = { border = "rounded" } })
---   vim.cmd("norm zz") -- Centra la pantalla en el error
--- end, { desc = "Ir al siguiente error" })
---
--- map("n", "<A-k>", function()
---   vim.diagnostic.goto_prev({ float = { border = "rounded" } })
---   vim.cmd("norm zz") -- Centra la pantalla en el error
--- end, { desc = "Ir al error anterior" })
-
-
--- --- REORDENAR PESTAÑAS ---
--- Para mover la posición de la pestaña actual en la barra
-map("n", "<A-H>", function()
-  require("nvchad.tabufline").move_buf(-1)
-end, { desc = "Desplazar pestaña a la izquierda" })
-
-
-map("n", "<A-L>", function()
-  require("nvchad.tabufline").move_buf(1)
-end, { desc = "Desplazar pestaña a la derecha" })
-
 
 -- Copiar buffer a varios archivos. Uso: <leader>cp file1 file2 ... > /dev/null
 map("n", "<leader>cp", ":w !tee ", { desc = "Copiar archivo a múltiples destinos" })
+
+
+-- =============================================================================
+-- ARQUITECTURA DE NAVEGACIÓN SIMÉTRICA (SHIFT = MACRO / ALT+SHIFT = DRAG)
+-- =============================================================================
+
+-- 1. CAPA SHIFT: MACRO-NAVEGACIÓN (Direccional HJKL)
+-- Horizontal: Pestañas (NvChad default)
+map("n", "H", function() require("nvchad.tabufline").prev() end, { desc = "Buffer Anterior" })
+map("n", "L", function() require("nvchad.tabufline").next() end, { desc = "Buffer Siguiente" })
+
+-- Vertical: Pantalla (Sustituye J y K nativos por coherencia)
+map("n", "J", "L", { desc = "Salto al fondo de pantalla (Vim L)" })
+map("n", "K", "H", { desc = "Salto al tope de pantalla (Vim H)" })
+-- M se mantiene nativo para el centro de la pantalla
+
+
+-- 2. CAPA ALT: RECUPERACIÓN SEMÁNTICA (Comandos de edición desplazados)
+map("n", "<A-j>", "J", { desc = "Vim Join (Unir líneas)" })
+map("n", "<A-k>", "K", { desc = "Vim Doc (Ver documentación)" })
+
+
+-- 3. CAPA ALT + SHIFT: ARRASTRE/TRANSFORMACIÓN (Mover elementos)
+-- Arrastrar líneas y bloques (Vertical)
+map("n", "<A-J>", "<cmd>m .+1<cr>==", { desc = "Arrastrar línea abajo" })
+map("n", "<A-K>", "<cmd>m .-2<cr>==", { desc = "Arrastrar línea arriba" })
+map("v", "<A-J>", ":m '>+1<CR>gv=gv", { desc = "Arrastrar bloque abajo" })
+map("v", "<A-K>", ":m '<-2<CR>gv=gv", { desc = "Arrastrar bloque arriba" })
+
+-- Reordenar posición de pestañas (Horizontal)
+map("n", "<A-H>", function() require("nvchad.tabufline").move_buf(-1) end, { desc = "Mover pestaña izq" })
+map("n", "<A-L>", function() require("nvchad.tabufline").move_buf(1) end, { desc = "Mover pestaña der" })
+
+
+
+
+
+
 
 
 
