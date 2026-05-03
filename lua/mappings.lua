@@ -81,7 +81,8 @@ map("n", "K", "H", { desc = "Salto al tope de pantalla (Vim H)" })
 
 -- 2. CAPA ALT: RECUPERACIÓN SEMÁNTICA (Comandos de edición desplazados)
 map("n", "<A-j>", "J", { desc = "Vim Join (Unir líneas)" })
-map("n", "<A-k>", "K", { desc = "Vim Doc (Ver documentación)" })
+-- map("n", "<A-k>", "K", { desc = "Vim Doc (Ver documentación)" })
+map("n", "<A-k>", vim.lsp.buf.hover, { desc = "LSP Hover" })
 
 
 -- 3. CAPA ALT + SHIFT: ARRASTRE/TRANSFORMACIÓN (Mover elementos)
