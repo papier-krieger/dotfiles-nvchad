@@ -21,12 +21,10 @@ M.base46 = {
 --      }
 -- }
 
-
 M.plugins = {
   {
     "hrsh7th/nvim-cmp",
     opts = function(_, opts)
-      -- Esto desactiva que el menú aparezca solo
       opts.completion = { autocomplete = false }
     end,
   },
