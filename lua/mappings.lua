@@ -64,40 +64,32 @@ map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle Explorer" })
 map("n", "<leader>cp", ":w !tee ", { desc = "Copiar archivo a múltiples destinos" })
 
 
+
+
 -- =============================================================================
--- ARQUITECTURA DE NAVEGACIÓN SIMÉTRICA (SHIFT = MACRO / ALT+SHIFT = DRAG)
+-- FILOSOFÍA PURE-VIM: NATIVOS PROTEGIDOS Y CAPAS SEMÁNTICAS (ALT / ALT+SHIFT)
 -- =============================================================================
 
--- 1. CAPA SHIFT: MACRO-NAVEGACIÓN (Direccional HJKL)
--- Horizontal: Pestañas (NvChad default)
-map("n", "H", function() require("nvchad.tabufline").prev() end, { desc = "Buffer Anterior" })
-map("n", "L", function() require("nvchad.tabufline").next() end, { desc = "Buffer Siguiente" })
+-- 1. CAPA ALT: NAVEGACIÓN DE INTERFAZ Y DIAGNÓSTICOS (Inspección)
+-- Horizontal: Movimiento entre Buffers (Pestañas)
+map("n", "<A-h>", function() require("nvchad.tabufline").prev() end, { desc = "Buffer: Anterior" })
+map("n", "<A-l>", function() require("nvchad.tabufline").next() end, { desc = "Buffer: Siguiente" })
 
--- Vertical: Pantalla (Sustituye J y K nativos por coherencia)
-map("n", "J", "L", { desc = "Salto al fondo de pantalla (Vim L)" })
-map("n", "K", "H", { desc = "Salto al tope de pantalla (Vim H)" })
--- M se mantiene nativo para el centro de la pantalla
-
-
--- 2. CAPA ALT: RECUPERACIÓN SEMÁNTICA (Comandos de edición desplazados)
-map("n", "<A-j>", "J", { desc = "Vim Join (Unir líneas)" })
--- map("n", "<A-k>", "K", { desc = "Vim Doc (Ver documentación)" })
-map("n", "<A-k>", vim.lsp.buf.hover, { desc = "LSP Hover" })
+-- Vertical: Salto entre Errores/Advertencias (LSP Diagnostics)
+map("n", "<A-k>", vim.diagnostic.goto_prev, { desc = "LSP: Error anterior" })
+map("n", "<A-j>", vim.diagnostic.goto_next, { desc = "LSP: Error siguiente" })
 
 
--- 3. CAPA ALT + SHIFT: ARRASTRE/TRANSFORMACIÓN (Mover elementos)
--- Arrastrar líneas y bloques (Vertical)
-map("n", "<A-J>", "<cmd>m .+1<cr>==", { desc = "Arrastrar línea abajo" })
-map("n", "<A-K>", "<cmd>m .-2<cr>==", { desc = "Arrastrar línea arriba" })
-map("v", "<A-J>", ":m '>+1<CR>gv=gv", { desc = "Arrastrar bloque abajo" })
-map("v", "<A-K>", ":m '<-2<CR>gv=gv", { desc = "Arrastrar bloque arriba" })
+-- 2. CAPA ALT + SHIFT: ACCIÓN ESTRUCTURAL (Drag & Move)
+-- Vertical: Arrastrar líneas y bloques de código
+map("n", "<A-J>", "<cmd>m .+1<cr>==", { desc = "Drag line down" })
+map("n", "<A-K>", "<cmd>m .-2<cr>==", { desc = "Drag line up" })
+map("v", "<A-J>", ":m '>+1<CR>gv=gv", { desc = "Drag block down" })
+map("v", "<A-K>", ":m '<-2<CR>gv=gv", { desc = "Drag block up" })
 
--- Reordenar posición de pestañas (Horizontal)
-map("n", "<A-H>", function() require("nvchad.tabufline").move_buf(-1) end, { desc = "Mover pestaña izq" })
-map("n", "<A-L>", function() require("nvchad.tabufline").move_buf(1) end, { desc = "Mover pestaña der" })
-
-
-
+-- Horizontal: Reordenar posición de pestañas (Buffers)
+map("n", "<A-H>", function() require("nvchad.tabufline").move_buf(-1) end, { desc = "Move buffer left" })
+map("n", "<A-L>", function() require("nvchad.tabufline").move_buf(1) end, { desc = "Move buffer right" })
 
 
 
