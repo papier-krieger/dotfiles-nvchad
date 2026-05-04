@@ -154,3 +154,23 @@ map("n", "<leader>oa", ":OpenAll<CR>", { desc = "Abrir todos los archivos" })
 map("n", "<leader>oh", ":OpenAll html<CR>", { desc = "Abrir todos los HTML" })
 map("n", "<leader>oc", ":OpenAll css<CR>", { desc = "Abrir todos los CSS" })
 map("n", "<leader>oj", ":OpenAll js<CR>", { desc = "Abrir todos los JS" })
+
+
+
+
+
+
+-- Ejemplo: Cambiar Alt + i por Leader + t (puedes poner las teclas que quieras)
+map({ "n", "t" }, "<leader>tt", function()
+  require("nvchad.term").toggle { pos = "float", id = "floatTerm" }
+end, { desc = "Terminal Flotante Personalizada" })
+
+-- Para la horizontal (Alt + h alternativo)
+map({ "n", "t" }, "<leader>th", function()
+  require("nvchad.term").toggle { pos = "sp", id = "horizontalTerm" }
+end, { desc = "Terminal Horizontal Personalizada" })
+
+-- Para la vertical (Alt + v alternativo)
+map({ "n", "t" }, "<leader>tv", function()
+  require("nvchad.term").toggle { pos = "vsp", id = "verticalTerm" }
+end, { desc = "Terminal Vertical Personalizada" })
