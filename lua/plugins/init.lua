@@ -90,4 +90,46 @@ return {
     },
   },
 
+  {
+    "tpope/vim-unimpaired",
+    event = "VeryLazy",
+  },
+
+
+  {
+    "karb94/neoscroll.nvim",
+    keys = { "<C-u>", "<C-d>", "<C-b>", "<C-f>", "zt", "zz", "zb" },
+
+    config = function()
+      local neoscroll = require('neoscroll')
+      neoscroll.setup({
+        hide_cursor = true,
+        stop_eof = true,
+        respect_scrolloff = true,
+        easing_function = "quadratic",
+      })
+
+      -- Esta es la nueva forma oficial en lugar de set_mappings
+      local keymap = {
+        ["<C-u>"] = function() neoscroll.ctrl_u({ duration = 250 }) end,
+        ["<C-d>"] = function() neoscroll.ctrl_d({ duration = 250 }) end,
+        ["<C-b>"] = function() neoscroll.ctrl_b({ duration = 450 }) end,
+        ["<C-f>"] = function() neoscroll.ctrl_f({ duration = 450 }) end,
+        ["zt"]    = function() neoscroll.zt({ half_win_duration = 250 }) end,
+        ["zz"]    = function() neoscroll.zz({ half_win_duration = 250 }) end,
+        ["zb"]    = function() neoscroll.zb({ half_win_duration = 250 }) end,
+      }
+
+      local modes = { 'n', 'v', 'x' }
+      for key, func in pairs(keymap) do
+        vim.keymap.set(modes, key, func)
+      end
+    end,
+  },
+
+  {
+    "mbbill/undotree",
+    lazy = false, 
+  },
+
 }

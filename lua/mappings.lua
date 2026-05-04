@@ -174,3 +174,9 @@ end, { desc = "Terminal Horizontal Personalizada" })
 map({ "n", "t" }, "<leader>tv", function()
   require("nvchad.term").toggle { pos = "vsp", id = "verticalTerm" }
 end, { desc = "Terminal Vertical Personalizada" })
+
+
+
+
+-- Ponlo al final del archivo o con tus otros mapeos de Leader
+map("n", "<leader>u", "<cmd>UndotreeToggle<cr>", { desc = "Undo: Ver árbol de historial" })
