@@ -19,7 +19,6 @@ vim.api.nvim_create_autocmd("VimEnter", {
 })
 
 
-map("n", ";", ":", { desc = "CMD enter command mode" })
 map("i", "jk", "<ESC>")
 map("t", "kj", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
 
