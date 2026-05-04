@@ -1,4 +1,8 @@
 require "nvchad.mappings"
+pcall(vim.keymap.del, {"n", "t"}, "<A-h>")
+pcall(vim.keymap.del, {"n", "t"}, "<A-v>")
+pcall(vim.keymap.del, {"n", "t"}, "<A-i>")
+
 
 -- add yours here
 
@@ -17,6 +21,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 
 map("n", ";", ":", { desc = "CMD enter command mode" })
 map("i", "jk", "<ESC>")
+map("t", "kj", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
 
 -- map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
 
@@ -138,7 +143,7 @@ vim.api.nvim_create_user_command("OpenAll", function(opts)
 end, { nargs = "?" })
 
 
-
+ 
 
 
 -- Atajos para OpenAll
