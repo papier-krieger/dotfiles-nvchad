@@ -20,7 +20,25 @@ vim.api.nvim_create_autocmd("VimEnter", {
 
 
 map("i", "jk", "<ESC>")
-map("t", "kj", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
+map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
+
+
+-- === ESTRUCTURAS SIMPLES ===
+map("i", "ää", "{}<Left>", { desc = "Insertar {}" })
+map("i", "üü", "[]<Left>", { desc = "Insertar []" })
+map("i", "öö", "()<Left>", { desc = "Insertar ()" })
+
+-- === ESTRUCTURAS DOBLES (Con espacios y triple salto atrás) ===
+-- En Neovim, tres <Left> te dejan justo en medio de los espacios
+map("i", "éé", "((  ))<Left><Left><Left>", { desc = "Doble parenthesis" })
+map("i", "èè", "[[  ]]<Left><Left><Left>", { desc = "Doble parenthesis" })
+map("i", "àà", "{{  }}<Left><Left><Left>", { desc = "Doble parenthesis" })
+
+-- === SUSTITUCIONES Y COMILLAS (Para completar el set) ===
+map("i", "qq", "''<Left>",  { desc = "Comillas simples" })
+map("i", "ww", '""<Left>',  { desc = "Comillas dobles" })
+
+
 
 -- map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
 
@@ -176,3 +194,25 @@ end, { desc = "Terminal Vertical Personalizada" })
 
 -- Ponlo al final del archivo o con tus otros mapeos de Leader
 map("n", "<leader>u", "<cmd>UndotreeToggle<cr>", { desc = "Undo: Ver árbol de historial" })
+
+-- Toggle autopairs estilo unimpaired
+vim.keymap.set("n", "yoa", function()
+  local ap = require("nvim-autopairs")
+  if ap.state.disabled then
+    ap.enable()
+    print("autopairs ON")
+  else
+    ap.disable()
+    print("autopairs OFF")
+  end
+end, { desc = "Toggle autopairs" })
+
+vim.keymap.set("n", "]oa", function()
+  require("nvim-autopairs").enable()
+  print("autopairs ON")
+end, { desc = "autopairs ON" })
+
+vim.keymap.set("n", "[oa", function()
+  require("nvim-autopairs").disable()
+  print("autopairs OFF")
+end, { desc = "autopairs OFF" })
