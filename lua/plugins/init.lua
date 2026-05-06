@@ -139,4 +139,12 @@ return {
     end,
   },
 
+  {
+    "andymass/vim-matchup",
+    lazy = false, -- Importante para que % funcione desde el inicio
+    config = function()
+      vim.g.matchup_matchparen_offscreen = { method = "popup" }
+    end,
+  },
+
 }
