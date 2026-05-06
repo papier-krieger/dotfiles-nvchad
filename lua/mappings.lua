@@ -103,8 +103,8 @@ map("n", "<A-j>", "<Down>", { desc = "Interfaz: Bajar" })
 map("n", "<A-k>", "<Up>", { desc = "Interfaz: Subir" })
 
 -- Vertical: MODO INSERTAR (Dentro de tu función de HTML)
-map("i", "<A-j>", function() goto_leaf_tag("next") end, { silent = true, desc = "HTML: Siguiente etiqueta" })
-map("i", "<A-k>", function() goto_leaf_tag("prev") end, { silent = true, desc = "HTML: Etiqueta anterior" })
+map("i", "<A-j>", function() require("utils.html").goto_leaf_tag("next") end, { silent = true, desc = "HTML: Siguiente etiqueta" })
+map("i", "<A-k>", function() require("utils.html").goto_leaf_tag("prev") end, { silent = true, desc = "HTML: Etiqueta anterior" })
 
 
 -- Vertical: Salto entre Errores/Advertencias (LSP Diagnostics)
@@ -206,7 +206,7 @@ end, { desc = "Terminal Vertical Personalizada" })
 map("n", "<leader>u", "<cmd>UndotreeToggle<cr>", { desc = "Undo: Ver árbol de historial" })
 
 -- Toggle autopairs estilo unimpaired
-vim.keymap.set("n", "yoa", function()
+map("n", "yoa", function()
   local ap = require("nvim-autopairs")
   if ap.state.disabled then
     ap.enable()
@@ -217,12 +217,12 @@ vim.keymap.set("n", "yoa", function()
   end
 end, { desc = "Toggle autopairs" })
 
-vim.keymap.set("n", "]oa", function()
+map("n", "]oa", function()
   require("nvim-autopairs").enable()
   print("autopairs ON")
 end, { desc = "autopairs ON" })
 
-vim.keymap.set("n", "[oa", function()
+map("n", "[oa", function()
   require("nvim-autopairs").disable()
   print("autopairs OFF")
 end, { desc = "autopairs OFF" })
