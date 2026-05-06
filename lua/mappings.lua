@@ -123,7 +123,11 @@ map("n", "<A-H>", function() require("nvchad.tabufline").move_buf(-1) end, { des
 map("n", "<A-L>", function() require("nvchad.tabufline").move_buf(1) end, { desc = "Move buffer right" })
 
 
-
+-- 3. CAPA CTRL: MOVIMIENTO DE CARÁCTER EN INSERT MODE
+map("i", "<C-h>", "<Left>",  { desc = "Insert: Mover izquierda" })
+map("i", "<C-l>", "<Right>", { desc = "Insert: Mover derecha" })
+map("i", "<C-j>", "<Down>",  { desc = "Insert: Mover abajo" })
+map("i", "<C-k>", "<Up>",    { desc = "Insert: Mover arriba" })
 
 
 
