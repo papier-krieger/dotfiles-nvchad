@@ -102,10 +102,9 @@ map("n", "<A-l>", function() require("nvchad.tabufline").next() end, { desc = "B
 map("n", "<A-j>", "<Down>", { desc = "Interfaz: Bajar" })
 map("n", "<A-k>", "<Up>", { desc = "Interfaz: Subir" })
 
--- Vertical: MODO INSERTAR (Dentro de tu función de HTML)
-map("i", "<A-j>", function() require("utils.html").goto_leaf_tag("next") end, { silent = true, desc = "HTML: Siguiente etiqueta" })
-map("i", "<A-k>", function() require("utils.html").goto_leaf_tag("prev") end, { silent = true, desc = "HTML: Etiqueta anterior" })
-
+-- Vertical: Navegación Inteligente (Salto por estructuras según lenguaje)
+map("i", "<A-j>", function() require("utils.nav").smart_jump("next") end, { silent = true, desc = "Nav: Siguiente estructura" })
+map("i", "<A-k>", function() require("utils.nav").smart_jump("prev") end, { silent = true, desc = "Nav: Estructura anterior" })
 
 -- Vertical: Salto entre Errores/Advertencias (LSP Diagnostics)
 -- map("n", "<A-k>", vim.diagnostic.goto_prev, { desc = "LSP: Error anterior" })
