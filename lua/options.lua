@@ -11,7 +11,7 @@ local opt = vim.opt
 opt.undofile = true
 opt.undolevels = 1000
 opt.undodir = vim.fn.expand("~/.local/state/nvim/undo")
-opt.timeoutlen = 500
+opt.timeoutlen = 300
 
 -- 2. Visualización de líneas (Wrap Pro)
 opt.wrap = true

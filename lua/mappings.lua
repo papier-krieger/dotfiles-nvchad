@@ -35,8 +35,8 @@ map("i", "èè", "[[  ]]<Left><Left><Left>", { desc = "Doble parenthesis" })
 map("i", "àà", "{{  }}<Left><Left><Left>", { desc = "Doble parenthesis" })
 
 -- === SUSTITUCIONES Y COMILLAS (Para completar el set) ===
-map("i", "qq", "''<Left>",  { desc = "Comillas simples" })
-map("i", "ww", '""<Left>',  { desc = "Comillas dobles" })
+-- map("i", "qq", "''<Left>",  { desc = "Comillas simples" })
+-- map("i", "ww", '""<Left>',  { desc = "Comillas dobles" })
 
 
 
@@ -97,9 +97,19 @@ map("n", "<leader>cp", ":w !tee ", { desc = "Copiar archivo a múltiples destino
 map("n", "<A-h>", function() require("nvchad.tabufline").prev() end, { desc = "Buffer: Anterior" })
 map("n", "<A-l>", function() require("nvchad.tabufline").next() end, { desc = "Buffer: Siguiente" })
 
+-- Vertical: Navegación de Interfaz / Listas (Telescope, q:, etc.)
+-- Nota: Muchos plugins ya usan A-j/k por defecto, pero esto lo asegura:
+map("n", "<A-j>", "<Down>", { desc = "Interfaz: Bajar" })
+map("n", "<A-k>", "<Up>", { desc = "Interfaz: Subir" })
+
+-- Vertical: MODO INSERTAR (Dentro de tu función de HTML)
+map("i", "<A-j>", function() goto_leaf_tag("next") end, { silent = true, desc = "HTML: Siguiente etiqueta" })
+map("i", "<A-k>", function() goto_leaf_tag("prev") end, { silent = true, desc = "HTML: Etiqueta anterior" })
+
+
 -- Vertical: Salto entre Errores/Advertencias (LSP Diagnostics)
-map("n", "<A-k>", vim.diagnostic.goto_prev, { desc = "LSP: Error anterior" })
-map("n", "<A-j>", vim.diagnostic.goto_next, { desc = "LSP: Error siguiente" })
+-- map("n", "<A-k>", vim.diagnostic.goto_prev, { desc = "LSP: Error anterior" })
+-- map("n", "<A-j>", vim.diagnostic.goto_next, { desc = "LSP: Error siguiente" })
 
 
 -- 2. CAPA ALT + SHIFT: ACCIÓN ESTRUCTURAL (Drag & Move)
@@ -216,3 +226,31 @@ vim.keymap.set("n", "[oa", function()
   require("nvim-autopairs").disable()
   print("autopairs OFF")
 end, { desc = "autopairs OFF" })
+
+
+
+-- COMANDO :H - PANEL DE CONTROL DE TERMINAL
+-- Abre historial y terminal en pantalla completa. 
+-- Flujo: Buscar/Copiar en historial -> [Tab] -> Pegar/Ejecutar en terminal.
+vim.api.nvim_create_user_command('H', function()
+  -- Ignorar avisos de swap file
+  vim.opt.shortmess:append "A"
+
+  -- 1. Abrir historial en pantalla completa
+  vim.cmd('edit ~/.bash_history')
+  vim.cmd('setlocal noswapfile')
+  vim.cmd('setlocal autoread')
+
+  -- 2. Abrir terminal en un buffer nuevo (sin split)
+  vim.cmd('enew')
+  vim.cmd('term')
+
+  -- 3. Volver al historial para empezar ahí
+  vim.cmd('bprevious')
+
+  -- Restaurar avisos
+  vim.opt.shortmess:remove "A"
+  print("Modo Historial: Usa Tab para cambiar a la Terminal")
+end, {})
+
+
