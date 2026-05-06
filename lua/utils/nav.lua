@@ -33,7 +33,6 @@ local function html_jump(direction)
       if nrow > row then
         vim.api.nvim_win_set_cursor(0, { nrow + 1, ncol })
         vim.cmd("normal! f>l")
-        vim.cmd("startinsert")
         return
       end
     end
@@ -44,7 +43,6 @@ local function html_jump(direction)
       if nrow < row or (nrow == row and ncol < col) then
         vim.api.nvim_win_set_cursor(0, { nrow + 1, ncol })
         vim.cmd("normal! f>l")
-        vim.cmd("startinsert")
         return
       end
     end
@@ -55,21 +53,29 @@ end
 -- === LÓGICA CSS ===
 local function css_jump(direction)
   if direction == "next" then
-    -- Salto adelante: busca la siguiente llave y entra
-    vim.fn.search("{", "W")
-    vim.cmd("normal! l")
+    -- Solo se mueve a la derecha si REALMENTE encuentra una llave nueva
+    if vim.fn.search("{", "W") > 0 then
+      vim.cmd("normal! l")
+    end
   else
-    -- Salto atrás: 
-    -- 1. Buscamos la llave '{' actual para asegurarnos de estar "detrás" de ella
+    -- Para el salto atrás:
+    -- 1. Intentamos buscar la llave del bloque anterior directamente
+    -- Guardamos la posición actual por si acaso
+    local pos = vim.api.nvim_win_get_cursor(0)
+    
+    -- Buscamos la llave actual (para salir de ella)
     vim.fn.search("{", "bW")
-    -- 2. Ahora que estamos en la '{' actual, buscamos la '{' del bloque anterior
-    -- Usamos 'bW' otra vez para saltar a la de arriba
-    vim.fn.search("{", "bW")
-    -- 3. Entramos después de la llave encontrada
-    vim.cmd("normal! l")
+    
+    -- Intentamos buscar la llave de arriba
+    if vim.fn.search("{", "bW") > 0 then
+      vim.cmd("normal! l")
+    else
+      -- Si no hay nada arriba, restauramos la posición original
+      -- para que no se quede en el lugar equivocado
+      vim.api.nvim_win_set_cursor(0, pos)
+    end
   end
 end
-
 
 
 -- === LÓGICA DE SALTO INTELIGENTE (EL SELECTOR) ===
