@@ -19,7 +19,11 @@ vim.api.nvim_create_autocmd("VimEnter", {
 })
 
 
-map("i", "jk", "<ESC>")
+map("i", "<Esc>", "<Nop>", { desc = "Disabled - use jk" })
+map("i", "jk", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
+map("i", "<Esc><Esc>", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
+
+map("t", "jk", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
 map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
 
 
@@ -255,5 +259,4 @@ vim.api.nvim_create_user_command('H', function()
   vim.opt.shortmess:remove "A"
   print("Modo Historial: Usa Tab para cambiar a la Terminal")
 end, {})
-
 

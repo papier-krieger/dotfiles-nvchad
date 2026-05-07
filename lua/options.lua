@@ -62,3 +62,11 @@ vim.api.nvim_create_autocmd({ "InsertLeave", "TextChanged" }, {
 
 -- 4. Clipboard
 vim.opt.clipboard = "unnamedplus"
+
+
+
+-- 5. Cursor colors por modo
+-- vim.api.nvim_set_hl(0, "Cursor",       { bg = "#81a1c1", fg = "#ffffff" }) -- Azul: Normal
+vim.api.nvim_set_hl(0, "Cursor",       { bg = "#c62828", fg = "#ffffff" }) -- Rojo: Normal/N-Terminal
+vim.api.nvim_set_hl(0, "CursorInsert", { bg = "#98c379", fg = "#ffffff" }) -- Verde: Insert/Terminal
+vim.opt.guicursor = "n-v-c:block-Cursor,i-ci:ver25-CursorInsert,t:ver25-CursorInsert,c:ver25-CursorInsert"
