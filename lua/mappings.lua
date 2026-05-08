@@ -18,13 +18,18 @@ vim.api.nvim_create_autocmd("VimEnter", {
   end,
 })
 
+-- === HOW TO GET OUT OF INSERT-MODE IN NEOVIM === -> ESC works by default -> practical
+map("i", "öa", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
+-- map("i", "jk", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
+-- map("i", "<Esc><Esc>", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
+-- map("i", "<Esc>", "<Nop>", { desc = "Disabled - use jk" })
 
-map("i", "<Esc>", "<Nop>", { desc = "Disabled - use jk" })
-map("i", "jk", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
-map("i", "<Esc><Esc>", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
 
-map("t", "jk", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
-map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
+-- === HOW TO GET OUT OF TERMINAL-MODE IN NEOVIM === ->  Ctr-\, Ctr-n works by default -> impractical
+map("t", "<Esc>", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
+map("t", "öa", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
+-- map("t", "jk", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
+-- map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
 
 
 -- === ESTRUCTURAS SIMPLES ===

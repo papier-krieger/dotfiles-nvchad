@@ -59,14 +59,22 @@ vim.api.nvim_create_autocmd({ "InsertLeave", "TextChanged" }, {
   end,
 })
 
-
 -- 4. Clipboard
 vim.opt.clipboard = "unnamedplus"
 
 
-
 -- 5. Cursor colors por modo
--- vim.api.nvim_set_hl(0, "Cursor",       { bg = "#81a1c1", fg = "#ffffff" }) -- Azul: Normal
-vim.api.nvim_set_hl(0, "Cursor",       { bg = "#c62828", fg = "#ffffff" }) -- Rojo: Normal/N-Terminal
-vim.api.nvim_set_hl(0, "CursorInsert", { bg = "#98c379", fg = "#ffffff" }) -- Verde: Insert/Terminal
+-- Colores de la statusline NvChad (referencia):
+--   #81a1c1 → NORMAL     (azul)
+--   #c882e7 → INSERT      (púrpura)
+--   #98c379 → TERMINAL    (verde)
+--   #e7c787 → N-TERMINAL  (naranja claro)
+--
+-- Cursor activo:
+--   Normal/N-Terminal → #81a1c1 (sincronizado con statusline NORMAL)
+--   Insert/Terminal   → #af8700 (mostaza — sincronizado con bash vi-command-mode cursor)
+vim.api.nvim_set_hl(0, "Cursor",       { bg = "#81a1c1", fg = "#ffffff" }) -- Azul:   Normal
+-- vim.api.nvim_set_hl(0, "Cursor",    { bg = "#c62828", fg = "#ffffff" }) -- Rojo:   (alternativa)
+vim.api.nvim_set_hl(0, "CursorInsert", { bg = "#af8700", fg = "#ffffff" }) -- Mostaza: Insert/Terminal
+-- vim.api.nvim_set_hl(0, "CursorInsert", { bg = "#98c379", fg = "#ffffff" }) -- Verde: (alternativa)
 vim.opt.guicursor = "n-v-c:block-Cursor,i-ci:ver25-CursorInsert,t:ver25-CursorInsert,c:ver25-CursorInsert"
