@@ -112,12 +112,8 @@ map("n", "<A-j>", "<Down>", { desc = "Interfaz: Bajar" })
 map("n", "<A-k>", "<Up>", { desc = "Interfaz: Subir" })
 
 -- Vertical: Navegación Inteligente (Salto por estructuras según lenguaje)
-map("i", "<A-j>", function() require("utils.nav").smart_jump("next") end, { silent = true, desc = "Nav: Siguiente estructura" })
-map("i", "<A-k>", function() require("utils.nav").smart_jump("prev") end, { silent = true, desc = "Nav: Estructura anterior" })
-
--- Vertical: Salto entre Errores/Advertencias (LSP Diagnostics)
--- map("n", "<A-k>", vim.diagnostic.goto_prev, { desc = "LSP: Error anterior" })
--- map("n", "<A-j>", vim.diagnostic.goto_next, { desc = "LSP: Error siguiente" })
+map("i", "<A-n>", function() require("utils.nav").smart_jump("next") end, { silent = true, desc = "Nav: Siguiente estructura" })
+map("i", "<A-p>", function() require("utils.nav").smart_jump("prev") end, { silent = true, desc = "Nav: Estructura anterior" })
 
 
 -- 2. CAPA ALT + SHIFT: ACCIÓN ESTRUCTURAL (Drag & Move)

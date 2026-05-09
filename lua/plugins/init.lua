@@ -51,6 +51,18 @@ return {
         ["<C-p>"] = cmp.mapping.select_prev_item(),
         ["<S-Tab>"] = cmp.mapping.select_prev_item(),
         ["<CR>"] = cmp.mapping.confirm({ select = true }),
+        ["<A-j>"] = cmp.mapping.select_next_item(),
+        ["<A-k>"] = cmp.mapping.select_prev_item(),
+        ["<A-s>"] = cmp.mapping(function()
+          cmp.complete({
+            config = { sources = { { name = "luasnip" } } }
+          })
+        end),
+        ["<A-l>"] = cmp.mapping(function()
+          cmp.complete({
+            config = { sources = { { name = "nvim_lsp" } } }
+          })
+        end),
       }
     end,
   },
@@ -177,5 +189,19 @@ return {
       return opts
     end,
   },
+
+  {
+    "nvim-telescope/telescope.nvim",
+    opts = function(_, opts)
+      opts.defaults = opts.defaults or {}
+      opts.defaults.mappings = {
+        i = {
+          ["<A-j>"] = require("telescope.actions").move_selection_next,
+          ["<A-k>"] = require("telescope.actions").move_selection_previous,
+        }
+      }
+    end,
+  }
+
 
 }
