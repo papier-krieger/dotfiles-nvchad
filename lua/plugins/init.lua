@@ -47,12 +47,13 @@ return {
           end
         end, { "i", "s" }),
         ["<C-Space>"] = cmp.mapping.complete(),
-        ["<C-n>"] = cmp.mapping.select_next_item(),
-        ["<C-p>"] = cmp.mapping.select_prev_item(),
-        ["<S-Tab>"] = cmp.mapping.select_prev_item(),
+        -- ["<A-Space>"] = cmp.mapping.complete(),
+        ["<C-j>"] = cmp.mapping.select_next_item(),
+        ["<C-k>"] = cmp.mapping.select_prev_item(),
+        -- ["<S-Tab>"] = cmp.mapping.select_prev_item(),
         ["<CR>"] = cmp.mapping.confirm({ select = true }),
-        ["<A-j>"] = cmp.mapping.select_next_item(),
-        ["<A-k>"] = cmp.mapping.select_prev_item(),
+        -- ["<A-j>"] = cmp.mapping.select_next_item(),
+        -- ["<A-k>"] = cmp.mapping.select_prev_item(),
         ["<A-s>"] = cmp.mapping(function()
           cmp.complete({
             config = { sources = { { name = "luasnip" } } }
@@ -196,12 +197,20 @@ return {
       opts.defaults = opts.defaults or {}
       opts.defaults.mappings = {
         i = {
-          ["<A-j>"] = require("telescope.actions").move_selection_next,
-          ["<A-k>"] = require("telescope.actions").move_selection_previous,
+          ["<C-j>"] = require("telescope.actions").move_selection_next,
+          ["<C-k>"] = require("telescope.actions").move_selection_previous,
         }
       }
     end,
-  }
+  },
+
+  {
+    "L3MON4D3/LuaSnip",
+    config = function(_, opts)
+      require("luasnip").setup(opts)
+      require("luasnip.loaders.from_lua").load({ paths = "~/.config/nvchad/lua/snippets" })
+    end,
+  },
 
 
 }
