@@ -19,16 +19,18 @@ vim.api.nvim_create_autocmd("VimEnter", {
 })
 
 -- === HOW TO GET OUT OF INSERT-MODE IN NEOVIM === -> ESC works by default -> practical
-map("i", "öa", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
--- map("i", "jk", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
+map("i", "ö", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
+-- map("i", "öa", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
+map("i", "jk", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
 -- map("i", "<Esc><Esc>", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
 -- map("i", "<Esc>", "<Nop>", { desc = "Disabled - use jk" })
 
 
 -- === HOW TO GET OUT OF TERMINAL-MODE IN NEOVIM === ->  Ctr-\, Ctr-n works by default -> impractical
 map("t", "<Esc>", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
-map("t", "öa", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
--- map("t", "jk", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
+map("t", "ö", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
+-- map("t", "öa", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
+map("t", "jk", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
 -- map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
 
 
@@ -129,10 +131,12 @@ map("n", "<A-L>", function() require("nvchad.tabufline").move_buf(1) end, { desc
 
 
 -- 3. CAPA CTRL: MOVIMIENTO DE CARÁCTER EN INSERT MODE
-map("i", "<C-h>", "<Left>",  { desc = "Insert: Mover izquierda" })
-map("i", "<C-l>", "<Right>", { desc = "Insert: Mover derecha" })
+-- map("i", "<C-h>", "<Left>",  { desc = "Insert: Mover izquierda" })
+-- map("i", "<C-l>", "<Right>", { desc = "Insert: Mover derecha" })
 map("i", "<C-n>", '<C-o>/""<CR><Right>', { desc = "Insert: siguiente \"\"" })
 map("i", "<C-p>", '<C-o>h<C-o>?""<CR><Right>', { desc = 'Insert: anterior ""' })
+-- map("i", "<C-h>", '<C-o>/> <CR><Right>', { desc = "Insert: siguiente \"\"" })
+-- map("i", "<C-l>", '<C-o>h<C-o>?> <CR><Right>', { desc = 'Insert: anterior ""' })
 
 
 

@@ -28,44 +28,152 @@ return {
   {
     "hrsh7th/nvim-cmp",
     opts = function(_, opts)
-      opts.completion = { autocomplete = false }
+
       local cmp = require "cmp"
+
+      -- Definir fuentes por defecto
+      opts.sources = {
+        { name = "nvim_lsp" },
+        { name = "luasnip" },
+        { name = "buffer" },
+        { name = "path" },
+      }
+
+      -- Configuracion de comportamiento (SIN autoseleccion)
+      opts.preselect = cmp.PreselectMode.None
+      opts.completion = {
+        autocomplete = false,
+        completeopt = "menu,menuone,noselect", -- 'noselect' evita que se elija uno solo
+      }
+
+
       opts.mapping = {
+  
         ["<Tab>"] = cmp.mapping(function(fallback)
-          local col = vim.fn.col('.') - 1
-          if col == 0 or vim.fn.getline('.'):sub(col, col):match('%s') then
-            fallback()
+          if cmp.visible() then
+            -- Si el menú ya está abierto, el Tab confirma la selección
+            cmp.confirm({ select = true })
           else
-            cmp.complete({ reason = cmp.ContextReason.Manual })
-            vim.defer_fn(function()
-              if cmp.visible() then
-                cmp.confirm({ select = true })
-              else
-                fallback()
-              end
-            end, 10)
+            -- VALIDACIÓN DE SEGURIDAD:
+            -- Miramos si hay un espacio o si la línea está vacía antes del cursor
+            local col = vim.fn.col('.') - 1
+            local line = vim.fn.getline('.')
+            local char_before = line:sub(col, col)
+
+            if col == 0 or char_before:match('%s') then
+              -- Si es el inicio o hay un espacio, ponemos sangría normal
+              fallback()
+            else
+              -- SOLO si hay texto pegado al cursor, intentamos la "magia" de Emmet/LSP
+              cmp.complete()
+              vim.defer_fn(function()
+                if cmp.visible() then
+                  cmp.confirm({ select = true })
+                else
+                  fallback()
+                end
+              end, 20)
+            end
           end
         end, { "i", "s" }),
-        ["<C-Space>"] = cmp.mapping.complete(),
-        -- ["<A-Space>"] = cmp.mapping.complete(),
-        ["<C-j>"] = cmp.mapping.select_next_item(),
-        ["<C-k>"] = cmp.mapping.select_prev_item(),
-        -- ["<S-Tab>"] = cmp.mapping.select_prev_item(),
+
+        -- 1. DISPARADORES ESPECIALIZADOS
+        -- Ctrl + l para LSP (Inteligencia)
+        ["<C-l>"] = cmp.mapping(function()
+          cmp.complete({ config = { sources = { { name = "nvim_lsp" }, { name = "nvim_lua" }, } } })
+        end),
+
+        -- Ctrl + o para Outlines / Objects (Snippets) 
+        ["<C-o>"] = cmp.mapping(function()
+          cmp.complete({ config = { sources = { { name = "luasnip" } } } })
+        end),
+
+        -- Ctrl + u para Url's / Paths (Rutas de archivos)
+        ["<C-u>"] = cmp.mapping(function()
+          cmp.complete({ config = { sources = { { name = "path" } } } })
+        end),
+
+        -- Ctrl + b para Buffer (Texto escrito)
+        
+        -- OPCIÓN A: Sugerencias SOLO del archivo actual
+        -- ["<C-b>"] = cmp.mapping(function()
+        --   cmp.complete({ config = { sources = { { name = "buffer" } } } })
+        -- end),
+
+        -- OPCIÓN B: Sugerencias de TODOS los archivos abiertos (Buffers)
+        ["<C-b>"] = cmp.mapping(function()
+          cmp.complete({
+            config = {
+              sources = {
+                {
+                  name = "buffer",
+                  option = {
+                    get_bufnrs = function()
+                      return vim.api.nvim_list_bufs()
+                    end
+                  }
+                }
+              }
+            }
+          })
+        end),
+
+        -- 2. NAVEGACIÓN (Cuando el menú ya está abierto)
+
+        ["<C-j>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
+        ["<C-k>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
+        ["<A-j>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
+        ["<A-k>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
+
+        -- 3. CONFIRMACIÓN
         ["<CR>"] = cmp.mapping.confirm({ select = true }),
-        -- ["<A-j>"] = cmp.mapping.select_next_item(),
-        -- ["<A-k>"] = cmp.mapping.select_prev_item(),
-        ["<A-s>"] = cmp.mapping(function()
-          cmp.complete({
-            config = { sources = { { name = "luasnip" } } }
-          })
-        end),
-        ["<A-l>"] = cmp.mapping(function()
-          cmp.complete({
-            config = { sources = { { name = "nvim_lsp" } } }
-          })
-        end),
+        
+        -- 4. ABRIR AL        
+        -- -- 4. ABRIR ALL
+        ["<C-Space>"] = cmp.mapping.complete(),
       }
+
+      opts.formatting = {
+        format = function(entry, vim_item)
+          -- Esto añade iconos bonitos y te dice de dónde viene cada sugerencia
+          vim_item.menu = ({
+            nvim_lsp = "[LSP]",     -- Para <C-l>
+            luasnip  = "[Own]", -- Para <C-o>
+            path     = "[URL]",     -- Para <C-u>
+            buffer   = "[Buffer]",  -- Para <C-Space>
+          })[entry.source.name]
+          return vim_item
+        end,
+      }
+
+
+
+      return opts
     end,
+
+      config = function(_,opts)
+    -- 1. Ejecuta la configuaracion base que definimos en 'opts' 
+        local cmp = require "cmp"
+        cmp.setup(opts)
+
+    -- 2. Configuración para búsqueda con '/' (hace que C-j/k funcionen para buscar palabras en el archivo)
+    cmp.setup.cmdline("/", {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = {
+        { name = "buffer" },
+      },
+    })
+
+    -- 3. Configuración para la barra de comandos ':' (sugiere comandos y rutas)
+    cmp.setup.cmdline(":", {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = cmp.config.sources({
+        { name = "path" },
+      }, {
+        { name = "cmdline" },
+      }),
+    })
+  end,
   },
 
   {
