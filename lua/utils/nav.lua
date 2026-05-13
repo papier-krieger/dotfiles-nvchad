@@ -1,22 +1,67 @@
 local M = {}
+
 -- === LÓGICA HTML ===
+
+-- Determina si un nodo de Tree-sitter es un elemento hoja (sin sub-etiquetas HTML)
 function M.is_leaf_element(node)
   if node:type() ~= "element" then return false end
   for child in node:iter_children() do
     if child:type() == "element" then return false end
   end
   local line = vim.api.nvim_buf_get_lines(0, node:start(), node:start() + 1, false)[1]
-  if line:match("^%s*<[^>]+/>") then return false end
+  if line and line:match("^%s*<[^>]+/>") then return false end
   return true
 end
 
-local function move_to_content(nrow, ncol)
-  vim.api.nvim_win_set_cursor(0, { nrow + 1, ncol })
-  vim.cmd("normal! f>l")  -- move inside tag
-  vim.cmd("normal! t<l")  -- land on last content char, then one right
-  vim.cmd("startinsert")
+-- Mueve el cursor e ingresa al modo de inserción usando rangos puros de Tree-sitter
+local function move_to_content(node)
+  local start_tag = nil
+  for child in node:iter_children() do
+    if child:type() == "start_tag" then
+      start_tag = child
+      break
+    end
+  end
+
+  -- Fallback seguro si Tree-sitter no encuentra la etiqueta de apertura por sintaxis rota
+  if not start_tag then
+    local ts_row, ts_col = node:start()
+    vim.api.nvim_win_set_cursor(0, { ts_row + 1, ts_col })
+    vim.cmd("normal! f>")
+    vim.cmd("startinsert")
+    return
+  end
+
+  -- Obtener el final exacto de la etiqueta de apertura '>'
+  local _, _, start_erow, start_ecol = start_tag:range()
+
+  -- Obtener el inicio exacto del tag de cierre '</'
+  local _, _, end_srow, end_scol = node:range() -- Fallback por defecto al cierre del nodo completo
+  local end_tag = nil
+  for child in node:iter_children() do
+    if child:type() == "end_tag" then
+      end_tag = child
+      break
+    end
+  end
+  
+  if end_tag then
+    end_srow, end_scol = end_tag:start()
+  end
+
+  -- Posicionar el cursor inteligentemente
+  if start_erow == end_srow and start_ecol == end_scol then
+    -- Si el tag está vacío, nos metemos exactamente entre >< sin movernos a la derecha
+    vim.api.nvim_win_set_cursor(0, { start_erow + 1, start_ecol })
+    vim.cmd("startinsert")
+  else
+    -- Si tiene contenido, nos paramos justo antes del '</' de la etiqueta de cierre
+    vim.api.nvim_win_set_cursor(0, { end_srow + 1, end_scol })
+    vim.cmd("startinsert")
+  end
 end
 
+-- Busca cuál es el nodo hoja actual en el que se encuentra el cursor
 local function get_current_leaf(leaves, row, col)
   for _, node in ipairs(leaves) do
     local srow = node:start()
@@ -28,6 +73,7 @@ local function get_current_leaf(leaves, row, col)
   return nil
 end
 
+-- Administra la recolección de nodos y los saltos hacia adelante o atrás en HTML
 local function html_jump(direction)
   local buf = vim.api.nvim_get_current_buf()
   local cursor = vim.api.nvim_win_get_cursor(0)
@@ -39,8 +85,11 @@ local function html_jump(direction)
 
   local leaves = {}
   local function collect(node)
-    if M.is_leaf_element(node) then table.insert(leaves, node)
-    else for child in node:iter_children() do collect(child) end end
+    if M.is_leaf_element(node) then 
+      table.insert(leaves, node)
+    else 
+      for child in node:iter_children() do collect(child) end 
+    end
   end
   collect(root)
 
@@ -50,8 +99,7 @@ local function html_jump(direction)
     local found_current = (current == nil)
     for _, node in ipairs(leaves) do
       if found_current then
-        local nrow, ncol = node:start()
-        move_to_content(nrow, ncol)
+        move_to_content(node)
         return
       end
       if node == current then found_current = true end
@@ -63,13 +111,13 @@ local function html_jump(direction)
       prev = node
     end
     if prev then
-      local nrow, ncol = prev:start()
-      move_to_content(nrow, ncol)
+      move_to_content(prev)
     end
   end
 end
 
 -- === LÓGICA CSS ===
+
 local function css_jump(direction)
   if direction == "next" then
     if vim.fn.search("{", "W") > 0 then
@@ -87,6 +135,7 @@ local function css_jump(direction)
 end
 
 -- === LÓGICA DE SALTO INTELIGENTE (EL SELECTOR) ===
+
 function M.smart_jump(direction)
   local ft = vim.bo.filetype
   if ft == "html" or ft == "xml" then
@@ -98,14 +147,12 @@ function M.smart_jump(direction)
   end
 end
 
-
-
 -- === LÓGICA DE SALTO ENTRE COMILLAS ===
+
 local function get_string_ranges(buf, root)
   local ranges = {}
   local function collect(node)
     local t = node:type()
-    -- treesitter string node names vary by language, cover the common ones
     if t == "string" or t == "quoted_attribute_value" or t == "string_fragment"
       or t == "raw_string" or t == "template_string" then
       local srow, scol, erow, ecol = node:range()
@@ -158,7 +205,6 @@ function M.quote_jump(direction)
 
   if #ranges == 0 then return end
 
-  -- find which range the cursor is currently inside
   local current_idx = nil
   for i, r in ipairs(ranges) do
     if cursor_in_range(row, col, r) then
@@ -172,7 +218,6 @@ function M.quote_jump(direction)
     if current_idx then
       target = ranges[current_idx + 1]
     else
-      -- not inside any string: jump to the first one ahead
       for _, r in ipairs(ranges) do
         if r.srow > row or (r.srow == row and r.scol > col) then
           target = r
@@ -184,7 +229,6 @@ function M.quote_jump(direction)
     if current_idx and current_idx > 1 then
       target = ranges[current_idx - 1]
     else
-      -- not inside any string: jump to the first one behind
       for i = #ranges, 1, -1 do
         local r = ranges[i]
         if r.erow < row or (r.erow == row and r.ecol <= col) then
@@ -197,14 +241,8 @@ function M.quote_jump(direction)
 
   if not target then return end
 
-  -- land just before the closing quote: ecol - 1
   vim.api.nvim_win_set_cursor(0, { target.erow + 1, target.ecol - 1 })
   vim.cmd("startinsert")
 end
-
-
-
-
-
 
 return M
