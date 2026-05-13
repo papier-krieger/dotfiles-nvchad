@@ -3,9 +3,6 @@ pcall(vim.keymap.del, {"n", "t"}, "<A-h>")
 pcall(vim.keymap.del, {"n", "t"}, "<A-v>")
 pcall(vim.keymap.del, {"n", "t"}, "<A-i>")
 
-
--- add yours here
-
 local map = vim.keymap.set
 
 -- Sincronizar raíz estilo VS Code
@@ -18,137 +15,109 @@ vim.api.nvim_create_autocmd("VimEnter", {
   end,
 })
 
--- === HOW TO GET OUT OF INSERT-MODE IN NEOVIM === -> ESC works by default -> practical
-map("i", "ö", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
--- map("i", "öa", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
+-- === HOW TO GET OUT OF INSERT-MODE ===
 map("i", "jk", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
--- map("i", "<Esc><Esc>", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
--- map("i", "<Esc>", "<Nop>", { desc = "Disabled - use jk" })
 
-
--- === HOW TO GET OUT OF TERMINAL-MODE IN NEOVIM === ->  Ctr-\, Ctr-n works by default -> impractical
+-- === HOW TO GET OUT OF TERMINAL-MODE ===
 map("t", "<Esc>", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
-map("t", "ö", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
--- map("t", "öa", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
 map("t", "jk", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
--- map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
-
 
 -- === ESTRUCTURAS SIMPLES ===
 map("i", "ää", "{}<Left>", { desc = "Insertar {}" })
 map("i", "üü", "[]<Left>", { desc = "Insertar []" })
 map("i", "öö", "()<Left>", { desc = "Insertar ()" })
 
--- === ESTRUCTURAS DOBLES (Con espacios y triple salto atrás) ===
--- En Neovim, tres <Left> te dejan justo en medio de los espacios
+-- === ESTRUCTURAS DOBLES ===
 map("i", "éé", "((  ))<Left><Left><Left>", { desc = "Doble parenthesis" })
 map("i", "èè", "[[  ]]<Left><Left><Left>", { desc = "Doble parenthesis" })
 map("i", "àà", "{{  }}<Left><Left><Left>", { desc = "Doble parenthesis" })
 
--- === SUSTITUCIONES Y COMILLAS (Para completar el set) ===
--- map("i", "qq", "''<Left>",  { desc = "Comillas simples" })
--- map("i", "ww", '""<Left>',  { desc = "Comillas dobles" })
-
-
-
--- map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
-
--- Iniciar Live Server en segundo plano (Versión Robusta para Linux)
+-- Live Server
 map("n", "<leader>ls", function()
   vim.fn.jobstart("live-server", { detach = true })
   print("🌐 Live Server iniciado (invisible)")
 end, { desc = "Start Live Server" })
 
--- Detener Live Server
 map("n", "<leader>lk", function()
   vim.fn.system("pkill -f live-server")
   print("🛑 Live Server detenido")
 end, { desc = "Stop Live Server" })
 
--- Gestión de Ventanas (Splits) con Espacio
-map("n", "<leader>vv", "<cmd>vsplit<CR>", { desc = "Split Vertical" })
-map("n", "<leader>vs", "<cmd>split<CR>", { desc = "Split Horizontal" })
-
--- Moverse entre ventanas (Sin usar Ctrl)
+-- Moverse entre ventanas
 map("n", "<leader>h", "<C-w>h", { desc = "Ventana Izquierda" })
 map("n", "<leader>l", "<C-w>l", { desc = "Ventana Derecha" })
 map("n", "<leader>j", "<C-w>j", { desc = "Ventana Abajo" })
 map("n", "<leader>k", "<C-w>k", { desc = "Ventana Arriba" })
 
-
-
--- Cerrar buffer actual con Alt + w
+-- Cerrar buffers
 map("n", "<A-w>", function()
   require("nvchad.tabufline").close_buffer()
 end, { desc = "Cerrar buffer actual" })
 
--- Cerrar buffer actual con Espacio + x
 map("n", "<leader>x", function()
   require("nvchad.tabufline").close_buffer()
 end, { desc = "Cerrar Buffer con leader x" })
 
-
--- Abrir/Cerrar barra lateral con Espacio + e (e de Explorer)
+-- Explorer
 map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle Explorer" })
 
-
-
--- Copiar buffer a varios archivos. Uso: <leader>cp file1 file2 ... > /dev/null
+-- Copiar buffer
 map("n", "<leader>cp", ":w !tee ", { desc = "Copiar archivo a múltiples destinos" })
-
-
 
 
 -- =============================================================================
 -- FILOSOFÍA PURE-VIM: NATIVOS PROTEGIDOS Y CAPAS SEMÁNTICAS (ALT / ALT+SHIFT)
 -- =============================================================================
 
--- 1. CAPA ALT: NAVEGACIÓN DE INTERFAZ Y DIAGNÓSTICOS (Inspección)
--- Horizontal: Movimiento entre Buffers (Pestañas)
+-- 1. CAPA ALT: NAVEGACIÓN DE INTERFAZ Y DIAGNÓSTICOS
 map("n", "<A-h>", function() require("nvchad.tabufline").prev() end, { desc = "Buffer: Anterior" })
 map("n", "<A-l>", function() require("nvchad.tabufline").next() end, { desc = "Buffer: Siguiente" })
 
--- Vertical: Navegación de Interfaz / Listas (Telescope, q:, etc.)
--- Nota: Muchos plugins ya usan A-j/k por defecto, pero esto lo asegura:
 map("n", "<A-j>", "<Down>", { desc = "Interfaz: Bajar" })
 map("n", "<A-k>", "<Up>", { desc = "Interfaz: Subir" })
 
--- Vertical: Navegación Inteligente (Salto por estructuras según lenguaje)
+map("n", "<A-n>", function()
+  vim.diagnostic.jump({ count = 1, severity = { min = vim.diagnostic.severity.HINT } })
+end, { desc = "LSP/Lint: Siguiente error o advertencia" })
+
+map("n", "<A-p>", function()
+  vim.diagnostic.jump({ count = -1, severity = { min = vim.diagnostic.severity.HINT } })
+end, { desc = "LSP/Lint: Error o advertencia anterior" })
+
+map("n", "<A-d>", function() vim.diagnostic.open_float() end, { desc = "LSP/Lint: Ver detalle del error" })
+
+map("n", "<leader>d", "<cmd>ConformInfo<cr>", { desc = "Formatter: Ver reporte de fallos (Conform)" })
+
+-- Navegación Inteligente (insert mode)
 map("i", "<A-n>", function() require("utils.nav").smart_jump("next") end, { silent = true, desc = "Nav: Siguiente estructura" })
 map("i", "<A-p>", function() require("utils.nav").smart_jump("prev") end, { silent = true, desc = "Nav: Estructura anterior" })
 
+-- Quote jump (insert mode) — new mappings for nav.quote_jump
+-- map("i", "<A-l>", function() require("utils.nav").quote_jump("next") end, { silent = true, desc = "Nav: Siguiente comilla" })
+-- map("i", "<A-h>", function() require("utils.nav").quote_jump("prev") end, { silent = true, desc = "Nav: Comilla anterior" })
+
 
 -- 2. CAPA ALT + SHIFT: ACCIÓN ESTRUCTURAL (Drag & Move)
--- Vertical: Arrastrar líneas y bloques de código
 map("n", "<A-J>", "<cmd>m .+1<cr>==", { desc = "Drag line down" })
 map("n", "<A-K>", "<cmd>m .-2<cr>==", { desc = "Drag line up" })
 map("v", "<A-J>", ":m '>+1<CR>gv=gv", { desc = "Drag block down" })
 map("v", "<A-K>", ":m '<-2<CR>gv=gv", { desc = "Drag block up" })
 
--- Horizontal: Reordenar posición de pestañas (Buffers)
 map("n", "<A-H>", function() require("nvchad.tabufline").move_buf(-1) end, { desc = "Move buffer left" })
 map("n", "<A-L>", function() require("nvchad.tabufline").move_buf(1) end, { desc = "Move buffer right" })
 
 
--- 3. CAPA CTRL: MOVIMIENTO DE CARÁCTER EN INSERT MODE
--- map("i", "<C-h>", "<Left>",  { desc = "Insert: Mover izquierda" })
--- map("i", "<C-l>", "<Right>", { desc = "Insert: Mover derecha" })
-map("i", "<C-n>", '<C-o>/""<CR><Right>', { desc = "Insert: siguiente \"\"" })
-map("i", "<C-p>", '<C-o>h<C-o>?""<CR><Right>', { desc = 'Insert: anterior ""' })
--- map("i", "<C-h>", '<C-o>/> <CR><Right>', { desc = "Insert: siguiente \"\"" })
--- map("i", "<C-l>", '<C-o>h<C-o>?> <CR><Right>', { desc = 'Insert: anterior ""' })
+-- 3. CAPA CTRL: MOVIMIENTO EN INSERT MODE
+-- map("i", "<C-n>", '<C-o>/""<CR><Right>', { desc = 'Insert: siguiente ""' })
+-- map("i", "<C-p>", '<C-o>h<C-o>?""<CR><Right>', { desc = 'Insert: anterior ""' })
+map("i", "<C-n>", function() require("utils.nav").quote_jump("next") end, { silent = true, desc = 'Insert: siguiente ""' })
+map("i", "<C-p>", function() require("utils.nav").quote_jump("prev") end, { silent = true, desc = 'Insert: anterior ""' })
 
 
-
---- COMANDO OPENALL (Versión Nueva)
--- Uso: :OpenAll      -> Abre todos los FICHEROS (con o sin extensión) e ignora carpetas.
--- Uso: :OpenAll html -> Abre solo archivos .html
-
+-- === COMANDO OPENALL ===
 vim.api.nvim_create_user_command("OpenAll", function(opts)
-
   local cwd = vim.fn.getcwd()
-  
-  -- 2. LIMPIEZA: Cierra buffers de directorios
+
   for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
     local name = vim.api.nvim_buf_get_name(bufnr)
     if name ~= "" and vim.fn.isdirectory(name) == 1 then
@@ -157,67 +126,50 @@ vim.api.nvim_create_user_command("OpenAll", function(opts)
   end
 
   local files_to_open = {}
-  -- Usamos **/ para buscar en la carpeta actual y en cualquier subcarpeta
   local pattern = (opts.args ~= "") and ("**/*." .. opts.args) or "**/*"
-  
   local all_items = vim.fn.globpath(cwd, pattern, false, true)
-  
+
   for _, item in ipairs(all_items) do
-    -- Solo archivos, ignorando carpetas pesadas o basura
-    if vim.fn.isdirectory(item) == 0 and 
-       not item:match("node_modules/") and 
+    if vim.fn.isdirectory(item) == 0 and
+       not item:match("node_modules/") and
        not item:match("%.git/") then
       table.insert(files_to_open, vim.fn.fnameescape(item))
     end
   end
 
   if #files_to_open > 0 then
-    -- 'args' carga la lista y 'argdo e' abre los buffers
     vim.cmd("args " .. table.concat(files_to_open, " ") .. " | silent argdo e")
-    vim.cmd "argument 1" 
+    vim.cmd "argument 1"
     print("🚀 Modo VS Code: " .. #files_to_open .. " archivos cargados desde " .. vim.fn.fnamemodify(cwd, ":t"))
   else
     print("⚠️ No se encontraron archivos en: " .. cwd)
   end
 end, { nargs = "?" })
 
-
- 
-
-
--- Atajos para OpenAll
 map("n", "<leader>oa", ":OpenAll<CR>", { desc = "Abrir todos los archivos" })
 map("n", "<leader>oh", ":OpenAll html<CR>", { desc = "Abrir todos los HTML" })
 map("n", "<leader>oc", ":OpenAll css<CR>", { desc = "Abrir todos los CSS" })
 map("n", "<leader>oj", ":OpenAll js<CR>", { desc = "Abrir todos los JS" })
 
 
-
-
-
-
--- Ejemplo: Cambiar Alt + i por Leader + t (puedes poner las teclas que quieras)
+-- === TERMINALES ===
 map({ "n", "t" }, "<leader>tt", function()
   require("nvchad.term").toggle { pos = "float", id = "floatTerm" }
 end, { desc = "Terminal Flotante Personalizada" })
 
--- Para la horizontal (Alt + h alternativo)
 map({ "n", "t" }, "<leader>th", function()
   require("nvchad.term").toggle { pos = "sp", id = "horizontalTerm" }
 end, { desc = "Terminal Horizontal Personalizada" })
 
--- Para la vertical (Alt + v alternativo)
 map({ "n", "t" }, "<leader>tv", function()
   require("nvchad.term").toggle { pos = "vsp", id = "verticalTerm" }
 end, { desc = "Terminal Vertical Personalizada" })
 
 
-
-
--- Ponlo al final del archivo o con tus otros mapeos de Leader
+-- Undotree
 map("n", "<leader>u", "<cmd>UndotreeToggle<cr>", { desc = "Undo: Ver árbol de historial" })
 
--- Toggle autopairs estilo unimpaired
+-- Toggle autopairs
 map("n", "yoa", function()
   local ap = require("nvim-autopairs")
   if ap.state.disabled then
@@ -240,28 +192,15 @@ map("n", "[oa", function()
 end, { desc = "autopairs OFF" })
 
 
-
--- COMANDO :H - PANEL DE CONTROL DE TERMINAL
--- Abre historial y terminal en pantalla completa. 
--- Flujo: Buscar/Copiar en historial -> [Tab] -> Pegar/Ejecutar en terminal.
+-- === COMANDO :H - PANEL DE CONTROL DE TERMINAL ===
 vim.api.nvim_create_user_command('H', function()
-  -- Ignorar avisos de swap file
   vim.opt.shortmess:append "A"
-
-  -- 1. Abrir historial en pantalla completa
   vim.cmd('edit ~/.bash_history')
   vim.cmd('setlocal noswapfile')
   vim.cmd('setlocal autoread')
-
-  -- 2. Abrir terminal en un buffer nuevo (sin split)
   vim.cmd('enew')
   vim.cmd('term')
-
-  -- 3. Volver al historial para empezar ahí
   vim.cmd('bprevious')
-
-  -- Restaurar avisos
   vim.opt.shortmess:remove "A"
   print("Modo Historial: Usa Tab para cambiar a la Terminal")
 end, {})
-
