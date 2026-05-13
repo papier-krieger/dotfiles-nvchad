@@ -65,6 +65,22 @@ map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle Explorer" })
 map("n", "<leader>cp", ":w !tee ", { desc = "Copiar archivo a múltiples destinos" })
 
 
+-- CAPA DE SALIDA ULTRA-ESTABLE DESDE MODO VISUAL ("v")
+-- Nota: "v" cubre tanto Modo Visual normal, por Línea, como por Bloque
+
+-- Salir normal sin guardar
+map("v", ":q", "<Esc>:q<CR>", { desc = "Salir desde Modo Visual de forma segura" })
+
+-- Guardar y salir
+map("v", ":x", "<Esc>:x<CR>", { desc = "Guardar y salir desde Modo Visual de forma segura" })
+
+-- Salir abortando con código de error (Git)
+map("v", ":cq", "<Esc>:cq<CR>", { desc = "Abortar/Salir con error de forma segura" })
+
+-- Forzar guardado del archivo completo
+map("v", ":w!", "<Esc>:w!<CR>", { desc = "Forzar guardado completo desde Modo Visual" })
+
+
 -- =============================================================================
 -- FILOSOFÍA PURE-VIM: NATIVOS PROTEGIDOS Y CAPAS SEMÁNTICAS (ALT / ALT+SHIFT)
 -- =============================================================================

@@ -45,18 +45,21 @@ return {
         completeopt = "menu,menuone,noselect",
       }
 
-      -- 2. CAPA ALT SEMÁNTICA
+      -- 2. TU CAPA CTRL SEMÁNTICA + TABLA HÍBRIDA + DUPLEX ALT DE NAVEGACIÓN
       opts.mapping = {
-        -- El Tab mágico (Confirmar si abierto / Intentar expansión si texto)
+        -- El Tab Híbrido Perfecto
         ["<Tab>"] = cmp.mapping(function(fallback)
           if cmp.visible() then
-            cmp.confirm({ select = true })
+            -- SI ESTÁ ABIERTO: Navega al siguiente elemento de la lista
+            cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
           else
             local col = vim.fn.col('.') - 1
             local line = vim.fn.getline('.')
             if col == 0 or line:sub(col, col):match('%s') then
+              -- SI ESTÁ VACÍO O ESPACIOS: Tabulación física normal
               fallback()
             else
+              -- SI HAY TEXTO: Abre y confirma instantáneamente el primer elemento
               cmp.complete()
               vim.defer_fn(function()
                 if cmp.visible() then cmp.confirm({ select = true }) else fallback() end
@@ -65,35 +68,76 @@ return {
           end
         end, { "i", "s" }),
 
-        -- DISPARADORES INDEPENDIENTES (I-S-F-W)
-        ["<A-i>"] = cmp.mapping(function() -- Intelligence
+        -- Shift+Tab: Navega hacia atrás (prev) en la lista si está abierta
+        ["<S-Tab>"] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
+          else
+            fallback()
+          end
+        end, { "i", "s" }),
+
+        -- NAVEGACIÓN ALTERNATIVA CON ALT (Duplica la lógica de Tab y Shift+Tab)
+        ["<A-j>"] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+          else
+            fallback() -- Si no está abierto, Alt+j actúa normal (o no hace nada)
+          end
+        end, { "i", "s" }),
+
+        ["<A-k>"] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
+          else
+            fallback() -- Si no está abierto, Alt+k actúa normal (o no hace nada)
+          end
+        end, { "i", "s" }),
+
+        -- Decisiones explícitas de confirmación y cierre
+        ["<CR>"] = cmp.mapping(function(fallback)
+          if cmp.visible() and cmp.get_selected_entry() then
+            cmp.confirm({ select = false })
+          else
+            fallback() -- Enter normal si el menú está cerrado o nada marcado
+          end
+        end, { "i", "s" }),
+
+        ["<Esc>"] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.close()
+          end
+          fallback()
+        end, { "i", "s" }),
+
+        -- TUS DISPARADORES SEMÁNTICOS CON CTRL (100% PORTABLES)
+        ["<C-Space>"] = cmp.mapping.complete(), -- Omni-completion unificada (Mezcla total)
+
+        ["<C-g>"] = cmp.mapping(function() -- Genius (LSP Dedicado)
           cmp.complete({ config = { sources = { { name = "nvim_lsp" } } } })
         end),
-        ["<A-s>"] = cmp.mapping(function() -- Snippets
-          cmp.complete({ config = { sources = { { name = "luasnip" } } } })
-        end),
-        ["<A-f>"] = cmp.mapping(function() -- Files
+
+        ["<C-f>"] = cmp.mapping(function() -- Files y Rutas (Paths)
           cmp.complete({ config = { sources = { { name = "path" } } } })
         end),
-        ["<A-w>"] = cmp.mapping(function() -- Words
+
+        ["<C-b>"] = cmp.mapping(function() -- Buffer (Words / Palabras del archivo)
           cmp.complete({ config = { sources = { { name = "buffer", option = { get_bufnrs = vim.api.nvim_list_bufs } } } } })
         end),
-        ["<A-Space>"] = cmp.mapping.complete(), -- Omni-completion
 
-        -- NAVEGACIÓN EN LISTAS
-        ["<A-j>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
-        ["<A-k>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
-        ["<CR>"] = cmp.mapping.confirm({ select = true }),
+        ["<C-e>"] = cmp.mapping(function() -- Expand (Snippets / Luasnip)
+          cmp.complete({ config = { sources = { { name = "luasnip" } } } })
+        end),
       }
 
-      -- 3. ETIQUETAS VISUALES COHERENTES
+      -- 3. INTERFAZ VISUAL COHERENTE CON TUS MNEMÓNICAS
       opts.formatting = {
         format = function(entry, vim_item)
           vim_item.menu = ({
-            nvim_lsp = "[Intelligence]", -- Sincronizado con A-i
-            luasnip  = "[Snippets]",     -- Sincronizado con A-s
-            path     = "[Files]",        -- Sincronizado con A-f
-            buffer   = "[Words]",        -- Sincronizado con A-w
+            nvim_lsp = "[Genius]",   -- Sincronizado con C-g
+            luasnip  = "[Expand]",   -- Sincronizado con C-e
+            path     = "[Files]",    -- Sincronizado con C-f
+            buffer   = "[Buffer]",   -- Sincronizado con C-b
           })[entry.source.name]
           return vim_item
         end,
@@ -101,7 +145,6 @@ return {
       return opts
     end,
 
-    -- Mantener la lógica cmdline fuera de opts para estabilidad
     config = function(_, opts)
       local cmp = require "cmp"
       cmp.setup(opts)
