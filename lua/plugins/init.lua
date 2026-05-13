@@ -27,18 +27,41 @@ return {
     },
   },
 
-  {
+
+{
     "hrsh7th/nvim-cmp",
     opts = function(_, opts)
       local cmp = require "cmp"
 
-      -- 1. FUENTES GLOBALES
-      opts.sources = {
-        { name = "nvim_lsp" },
-        { name = "luasnip" },
-        { name = "buffer" },
-        { name = "path" },
-      }
+      -- VARIABLE INTERNA PARA FILTRADO DINÁMICO REAL
+      -- nil = Mostrar todo | "nvim_lsp" | "luasnip" | "path" | "buffer"
+      local current_filter = nil
+
+      -- 1. FUENTES GLOBALES DINÁMICAS
+      opts.sources = cmp.config.sources({
+        {
+          name = "nvim_lsp",
+          entry_filter = function() return current_filter == nil or current_filter == "nvim_lsp" end
+        },
+        {
+          name = "luasnip",
+          entry_filter = function() return current_filter == nil or current_filter == "luasnip" end
+        },
+        {
+          name = "path",
+          entry_filter = function() return current_filter == nil or current_filter == "path" end
+        },
+        {
+          name = "buffer",
+          entry_filter = function() return current_filter == nil or current_filter == "buffer" end
+        },
+      })
+
+      -- RESTAURAR EL FILTRO GLOBAL AL CERRAR EL POPUP
+      cmp.event:on("menu_closed", function()
+        current_filter = nil
+      end)
+
       opts.preselect = cmp.PreselectMode.None
       opts.completion = {
         autocomplete = false,
@@ -80,6 +103,7 @@ return {
         -- NAVEGACIÓN ALTERNATIVA CON ALT (Duplica la lógica de Tab y Shift+Tab)
         ["<A-j>"] = cmp.mapping(function(fallback)
           if cmp.visible() then
+            -- Si el menú está abierto, Alt+j actúa igual que Tab
             cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
           else
             fallback() -- Si no está abierto, Alt+j actúa normal (o no hace nada)
@@ -110,24 +134,48 @@ return {
           fallback()
         end, { "i", "s" }),
 
-        -- TUS DISPARADORES SEMÁNTICOS CON CTRL (100% PORTABLES)
-        ["<C-Space>"] = cmp.mapping.complete(), -- Omni-completion unificada (Mezcla total)
+        -- TUS DISPARADORES SEMÁNTICOS CON CTRL (100% INTERRUPTIBLES EN CUALQUIER DIRECCIÓN)
+        ["<C-Space>"] = cmp.mapping(function() -- Omni-completion unificada
+          if cmp.visible() then cmp.close() end -- Rompe filtros específicos para mostrar TODO
+          current_filter = nil -- Permite cargar todas las fuentes
+          cmp.complete()
+          vim.defer_fn(function() if cmp.visible() then cmp.select_next_item({ behavior = cmp.SelectBehavior.Select }) end end, 20)
+        end, { "i", "s" }),
+
+        ["<C-a>"] = cmp.mapping(function() -- ALL: Omni-completion unificada (Mnemónica "All")
+          if cmp.visible() then cmp.close() end -- Rompe filtros específicos para mostrar TODO
+          current_filter = nil -- Permite cargar todas las fuentes
+          cmp.complete()
+          vim.defer_fn(function() if cmp.visible() then cmp.select_next_item({ behavior = cmp.SelectBehavior.Select }) end end, 20)
+        end, { "i", "s" }),
 
         ["<C-g>"] = cmp.mapping(function() -- Genius (LSP Dedicado)
-          cmp.complete({ config = { sources = { { name = "nvim_lsp" } } } })
-        end),
+          if cmp.visible() then cmp.close() end -- Filtra al vuelo incluso si ya navegabas con Tab
+          current_filter = "nvim_lsp" -- Activa filtro estricto de LSP
+          cmp.complete()
+          vim.defer_fn(function() if cmp.visible() then cmp.select_next_item({ behavior = cmp.SelectBehavior.Select }) end end, 20)
+        end, { "i", "s" }),
 
         ["<C-f>"] = cmp.mapping(function() -- Files y Rutas (Paths)
-          cmp.complete({ config = { sources = { { name = "path" } } } })
-        end),
+          if cmp.visible() then cmp.close() end -- Filtra al vuelo incluso si ya navegabas con Tab
+          current_filter = "path" -- Activa filtro estricto de Rutas
+          cmp.complete()
+          vim.defer_fn(function() if cmp.visible() then cmp.select_next_item({ behavior = cmp.SelectBehavior.Select }) end end, 20)
+        end, { "i", "s" }),
 
         ["<C-b>"] = cmp.mapping(function() -- Buffer (Words / Palabras del archivo)
-          cmp.complete({ config = { sources = { { name = "buffer", option = { get_bufnrs = vim.api.nvim_list_bufs } } } } })
-        end),
+          if cmp.visible() then cmp.close() end -- Filtra al vuelo incluso si ya navegabas con Tab
+          current_filter = "buffer" -- Activa filtro estricto de palabras de Buffer
+          cmp.complete()
+          vim.defer_fn(function() if cmp.visible() then cmp.select_next_item({ behavior = cmp.SelectBehavior.Select }) end end, 20)
+        end, { "i", "s" }),
 
         ["<C-e>"] = cmp.mapping(function() -- Expand (Snippets / Luasnip)
-          cmp.complete({ config = { sources = { { name = "luasnip" } } } })
-        end),
+          if cmp.visible() then cmp.close() end -- Filtra al vuelo incluso si ya navegabas con Tab
+          current_filter = "luasnip" -- [SOLUCIÓN DEFINITIVA] Destruye el resto de fuentes para dejar sola a Luasnip
+          cmp.complete()
+          vim.defer_fn(function() if cmp.visible() then cmp.select_next_item({ behavior = cmp.SelectBehavior.Select }) end end, 35) -- Pequeño margen extra para cálculo de Luasnip
+        end, { "i", "s" }),
       }
 
       -- 3. INTERFAZ VISUAL COHERENTE CON TUS MNEMÓNICAS
