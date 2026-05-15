@@ -2,6 +2,10 @@ require "nvchad.mappings"
 pcall(vim.keymap.del, {"n", "t"}, "<A-h>")
 pcall(vim.keymap.del, {"n", "t"}, "<A-v>")
 pcall(vim.keymap.del, {"n", "t"}, "<A-i>")
+pcall(vim.keymap.del, "n", "<TAB>")
+pcall(vim.keymap.del, "n", "<S-TAB>")
+pcall(vim.keymap.del, {"n", "t"}, "<leader>h")
+pcall(vim.keymap.del, {"n", "t"}, "<leader>v")
 
 local map = vim.keymap.set
 
@@ -43,26 +47,28 @@ map("n", "<leader>lk", function()
   print("🛑 Live Server detenido")
 end, { desc = "Stop Live Server" })
 
--- Moverse entre ventanas
-map("n", "<leader>h", "<C-w>h", { desc = "Ventana Izquierda" })
-map("n", "<leader>l", "<C-w>l", { desc = "Ventana Derecha" })
-map("n", "<leader>j", "<C-w>j", { desc = "Ventana Abajo" })
-map("n", "<leader>k", "<C-w>k", { desc = "Ventana Arriba" })
+
+-- <leader>+número para ir al buffer
+for i = 1, 9 do
+  vim.keymap.set("n", "<leader>" .. i, function()
+    local bufs = vim.t.bufs
+    if bufs and bufs[i] then
+      vim.api.nvim_set_current_buf(bufs[i])
+    end
+  end, { desc = "Buffer " .. i })
+end
 
 -- Cerrar buffers
-map("n", "<A-w>", function()
-  require("nvchad.tabufline").close_buffer()
-end, { desc = "Cerrar buffer actual" })
-
 map("n", "<leader>x", function()
   require("nvchad.tabufline").close_buffer()
 end, { desc = "Cerrar Buffer con leader x" })
 
--- Explorer
-map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle Explorer" })
-
 -- Copiar buffer
 map("n", "<leader>cp", ":w !tee ", { desc = "Copiar archivo a múltiples destinos" })
+
+
+-- Explorer
+map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle Explorer" })
 
 
 -- CAPA DE SALIDA ULTRA-ESTABLE DESDE MODO VISUAL ("v")
@@ -107,10 +113,6 @@ map("n", "<leader>d", "<cmd>ConformInfo<cr>", { desc = "Formatter: Ver reporte d
 -- Navegación Inteligente (insert mode)
 map("i", "<A-n>", function() require("utils.nav").smart_jump("next") end, { silent = true, desc = "Nav: Siguiente estructura" })
 map("i", "<A-p>", function() require("utils.nav").smart_jump("prev") end, { silent = true, desc = "Nav: Estructura anterior" })
-
--- Quote jump (insert mode) — new mappings for nav.quote_jump
--- map("i", "<A-l>", function() require("utils.nav").quote_jump("next") end, { silent = true, desc = "Nav: Siguiente comilla" })
--- map("i", "<A-h>", function() require("utils.nav").quote_jump("prev") end, { silent = true, desc = "Nav: Comilla anterior" })
 
 
 -- 2. CAPA ALT + SHIFT: ACCIÓN ESTRUCTURAL (Drag & Move)
@@ -169,17 +171,9 @@ map("n", "<leader>oj", ":OpenAll js<CR>", { desc = "Abrir todos los JS" })
 
 
 -- === TERMINALES ===
-map({ "n", "t" }, "<leader>tt", function()
+map({ "n", "t" }, "<leader>t", function()
   require("nvchad.term").toggle { pos = "float", id = "floatTerm" }
 end, { desc = "Terminal Flotante Personalizada" })
-
-map({ "n", "t" }, "<leader>th", function()
-  require("nvchad.term").toggle { pos = "sp", id = "horizontalTerm" }
-end, { desc = "Terminal Horizontal Personalizada" })
-
-map({ "n", "t" }, "<leader>tv", function()
-  require("nvchad.term").toggle { pos = "vsp", id = "verticalTerm" }
-end, { desc = "Terminal Vertical Personalizada" })
 
 
 -- Undotree

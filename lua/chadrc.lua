@@ -15,13 +15,19 @@ M.base46 = {
 }
 
 -- M.nvdash = { load_on_startup = true }
--- M.ui = {
---       tabufline = {
---          lazyload = false
---      }
--- }
+M.ui = {
+  tabufline = {
+    show_numbers = true,
+    lazyload = false,  -- muestra la tabufline desde el inicio
+  },
+}
 
 M.plugins = {
+  {
+    "NvChad/ui",
+    pin = true,  -- evita que :Lazy update sobreescriba tu fix
+  },
+
   {
     "hrsh7th/nvim-cmp",
     opts = function(_, opts)
@@ -38,9 +44,9 @@ M.term = {
     col = 0.1,
     width = 0.8,
     height = 0.6,
-    border = "single",
-    border = "rounded",
-    -- border = {"╔", "═" ,"╗", "║", "╝", "═", "╚", "║"}
+    -- border = "single",
+    -- border = "rounded",
+    border = {"╔", "═" ,"╗", "║", "╝", "═", "╚", "║"}
   },
 }
 
