@@ -1,7 +1,7 @@
 return {
   {
     "stevearc/conform.nvim",
-    event = 'BufWritePre',
+    event = "BufWritePre",
     opts = require "configs.conform",
   },
 
@@ -27,7 +27,6 @@ return {
     },
   },
 
-
   {
     "hrsh7th/nvim-cmp",
     opts = function(_, opts)
@@ -35,157 +34,225 @@ return {
       local types = require "cmp.types"
       local kind = types.lsp.CompletionItemKind
 
-      -- VARIABLE INTERNA PARA FILTRADO DINÁMICO REAL
-      -- nil = Todo | "nvim_lsp" | "luasnip" | "path" | "buffer" | "LSP_Calls" | "LSP_Variables"
+      -- nil = Todo | "nvim_lsp" | "friendly" | "diy" | "path" | "buffer"
+      -- "LSP_Functions" | "LSP_Variables" | "LSP_Values"
       local current_filter = nil
+      local SELECT_MODE = true
+      -- local SELECT_MODE = false
 
-      -- 1. FUENTES GLOBALES DINÁMICAS CON SUBFILTROS MICRO INTEGRADOS
-      opts.sources = cmp.config.sources({
+      -- 1. FUENTES
+      opts.sources = cmp.config.sources {
         {
           name = "nvim_lsp",
-          entry_filter = function(entry, ctx)
-            if current_filter == nil or current_filter == "nvim_lsp" then 
-              return true 
+          entry_filter = function(entry)
+            -- excluir snippets del LSP siempre
+            if entry:get_kind() == kind.Snippet then
+              return false
             end
 
-            -- SUBFILTRO: Solo Funciones, Métodos y Constructores (Acciones)
-            if current_filter == "LSP_Calls" then
+            if current_filter == nil or current_filter == "nvim_lsp" then
+              return true
+            end
+            if current_filter == "LSP_Functions" then
               local k = entry:get_kind()
               return k == kind.Method or k == kind.Function or k == kind.Constructor
             end
-
-            -- SUBFILTRO: Solo Variables, Constantes, Campos y Propiedades (Datos)
             if current_filter == "LSP_Variables" then
               local k = entry:get_kind()
               return k == kind.Variable or k == kind.Constant or k == kind.Field or k == kind.Property
             end
-
+            if current_filter == "LSP_Values" then
+              local k = entry:get_kind()
+              return k == kind.Value or k == kind.Enum or k == kind.EnumMember
+            end
             return false
-          end
+          end,
         },
         {
           name = "luasnip",
-          entry_filter = function() return current_filter == nil or current_filter == "luasnip" end
+          entry_filter = function(entry)
+            -- bloquear si no corresponde al filtro activo
+            if
+              current_filter == "nvim_lsp"
+              or current_filter == "path"
+              or current_filter == "buffer"
+              or current_filter == "LSP_Functions"
+              or current_filter == "LSP_Variables"
+              or current_filter == "LSP_Values"
+            then
+              return false
+            end
+
+            local item = entry:get_completion_item()
+            local is_diy = item.label and item.label:find "^diy%." ~= nil
+
+            -- filtro DIY: solo diy.
+            if current_filter == "diy" then
+              return is_diy
+            end
+
+            -- filtro friendly: todo menos diy.
+            if current_filter == "friendly" then
+              return not is_diy
+            end
+
+            -- filtro nil (A-a): todo
+            return true
+          end,
         },
         {
           name = "path",
-          entry_filter = function() return current_filter == nil or current_filter == "path" end
+          entry_filter = function()
+            return current_filter == nil or current_filter == "path"
+          end,
         },
         {
           name = "buffer",
-          entry_filter = function() return current_filter == nil or current_filter == "buffer" end
+          entry_filter = function()
+            return current_filter == nil or current_filter == "buffer"
+          end,
         },
-      })
-
-      -- RESTAURAR EL FILTRO GLOBAL AL CERRAR EL POPUP
-      cmp.event:on("menu_closed", function()
-        current_filter = nil
-      end)
+      }
 
       opts.preselect = cmp.PreselectMode.None
       opts.completion = {
         autocomplete = false,
-        completeopt = "menu,menuone,noselect",
+        completeopt = SELECT_MODE and "menu,menuone,select" or "menu,menuone,noselect",
       }
 
-      -- 2. NAVEGACIÓN COMPARTIDA Y CONTROL DEL POPUP (Teclas simples)
+      -- 2. MAPPINGS
       opts.mapping = {
         ["<Tab>"] = cmp.mapping(function(fallback)
           if cmp.visible() then
-            cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+            cmp.select_next_item { behavior = cmp.SelectBehavior.Select }
           else
-            local col = vim.fn.col('.') - 1
-            local line = vim.fn.getline('.')
-            if col == 0 or line:sub(col, col):match('%s') then
+            local col = vim.fn.col "." - 1
+            local line = vim.fn.getline "."
+            if col == 0 or line:sub(col, col):match "%s" then
               fallback()
             else
               cmp.complete()
               vim.defer_fn(function()
-                if cmp.visible() then cmp.confirm({ select = true }) else fallback() end
+                if cmp.visible() then
+                  cmp.confirm { select = true }
+                else
+                  fallback()
+                end
               end, 20)
             end
           end
         end, { "i", "s" }),
 
         ["<S-Tab>"] = cmp.mapping(function(fallback)
-          if cmp.visible() then cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select }) else fallback() end
+          if cmp.visible() then
+            cmp.select_prev_item { behavior = cmp.SelectBehavior.Select }
+          else
+            fallback()
+          end
         end, { "i", "s" }),
 
         ["<A-j>"] = cmp.mapping(function(fallback)
-          if cmp.visible() then cmp.select_next_item({ behavior = cmp.SelectBehavior.Select }) else fallback() end
+          if cmp.visible() then
+            cmp.select_next_item { behavior = cmp.SelectBehavior.Select }
+          else
+            fallback()
+          end
         end, { "i", "s" }),
 
         ["<A-k>"] = cmp.mapping(function(fallback)
-          if cmp.visible() then cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select }) else fallback() end
+          if cmp.visible() then
+            cmp.select_prev_item { behavior = cmp.SelectBehavior.Select }
+          else
+            fallback()
+          end
         end, { "i", "s" }),
 
         ["<CR>"] = cmp.mapping(function(fallback)
-          if cmp.visible() and cmp.get_selected_entry() then cmp.confirm({ select = false }) else fallback() end
+          if cmp.visible() and cmp.get_selected_entry() then
+            cmp.confirm { select = false }
+          else
+            fallback()
+          end
         end, { "i", "s" }),
 
         ["<Esc>"] = cmp.mapping(function(fallback)
-          if cmp.visible() then cmp.close() end
+          if cmp.visible() then
+            cmp.close()
+          end
           fallback()
         end, { "i", "s" }),
 
+        -- LSP puro — como C-Space en VSCode
         ["<C-Space>"] = cmp.mapping(function()
-          if cmp.visible() then cmp.close() end
-          current_filter = nil
+          if cmp.visible() then
+            cmp.close()
+          end
+          current_filter = "nvim_lsp"
           cmp.complete()
-          vim.defer_fn(function() if cmp.visible() then cmp.select_next_item({ behavior = cmp.SelectBehavior.Select }) end end, 20)
         end, { "i", "s" }),
       }
 
-      -- ====================================================================
-      -- CAPA ALT CAPTURADA POR NEOVIM (Ergonomía pura de un solo paso)
-      -- ====================================================================
-      local function create_alt_filter(filter_target)
+      -- 3. FILTROS ALT
+      local function create_filter(filter_target)
         return function()
-          if cmp.visible() then cmp.close() end
+          if cmp.visible() then
+            cmp.close()
+          end
           current_filter = filter_target
           cmp.complete()
 
-          local delay = filter_target == "luasnip" and 35 or 20
-          vim.defer_fn(function()
-            if cmp.visible() then 
-              cmp.select_next_item({ behavior = cmp.SelectBehavior.Select }) 
-            end
-          end, delay)
+          if SELECT_MODE and filter_target == "diy" then
+            vim.defer_fn(function()
+              if cmp.visible() then
+                cmp.select_next_item { behavior = cmp.SelectBehavior.Select }
+              end
+            end, 35)
+          end
         end
       end
 
-      -- Mapeos nativos en Modo Inserto para la mano izquierda
-      vim.keymap.set("i", "<A-a>", function() -- All (Resetear filtros)
-        if cmp.visible() then cmp.close() end
+      -- LSP puro (igual que C-Space pero con Alt)
+      vim.keymap.set("i", "<A-Space>", function()
+        if cmp.visible() then
+          cmp.close()
+        end
+        current_filter = "nvim_lsp"
+        cmp.complete()
+      end, { desc = "CMP: LSP puro" })
+
+      -- Todo
+      vim.keymap.set("i", "<A-a>", function()
+        if cmp.visible() then
+          cmp.close()
+        end
         current_filter = nil
         cmp.complete()
-      end, { desc = "CMP: Mostrar todas las fuentes" })
+      end, { desc = "CMP: All" })
 
-      vim.keymap.set("i", "<A-g>", create_alt_filter("nvim_lsp"),      { desc = "CMP: Solo Genius (LSP Completo)" })
-      vim.keymap.set("i", "<A-s>", create_alt_filter("luasnip"),       { desc = "CMP: Solo Snippets" })
-      vim.keymap.set("i", "<A-f>", create_alt_filter("path"),          { desc = "CMP: Solo Files (Rutas)" })
-      vim.keymap.set("i", "<A-w>", create_alt_filter("buffer"),        { desc = "CMP: Solo Words (Buffer)" })
+      vim.keymap.set("i", "<A-s>", create_filter "friendly", { desc = "CMP: Snippets (friendly)" })
+      vim.keymap.set("i", "<A-d>", create_filter "diy", { desc = "CMP: Snippets DIY" })
+      vim.keymap.set("i", "<A-f>", create_filter "LSP_Functions", { desc = "CMP: LSP Functions" })
+      vim.keymap.set("i", "<A-x>", create_filter "LSP_Variables", { desc = "CMP: LSP Variables" })
+      vim.keymap.set("i", "<A-v>", create_filter "LSP_Values", { desc = "CMP: LSP Values" })
+      vim.keymap.set("i", "<A-w>", create_filter "buffer", { desc = "CMP: Words (buffer)" })
+      vim.keymap.set("i", "<A-r>", create_filter "path", { desc = "CMP: Paths (rutas)" })
 
-      -- Los dos subfiltros micro estratégicos para tu Home-Row
-      vim.keymap.set("i", "<A-c>", create_alt_filter("LSP_Calls"),     { desc = "CMP: LSP -> Solo Funciones/Métodos" })
-      vim.keymap.set("i", "<A-v>", create_alt_filter("LSP_Variables"), { desc = "CMP: LSP -> Solo Variables/Campos" })
-
-      -- 3. INTERFAZ VISUAL COHERENTE CON TUS PROPIAS MNEMÓNICAS EN EL FORMATTING
+      -- 4. FORMATTING
       opts.formatting = {
         format = function(entry, vim_item)
-          -- Ajuste dinámico de la etiqueta según el subfiltro activo de la LSP
           local lsp_label = "[Genius]"
-          if current_filter == "LSP_Calls" then
-            lsp_label = "[Calls]"
+          if current_filter == "LSP_Functions" then
+            lsp_label = "[Functions]"
           elseif current_filter == "LSP_Variables" then
             lsp_label = "[Variables]"
+          elseif current_filter == "LSP_Values" then
+            lsp_label = "[Values]"
           end
-
           vim_item.menu = ({
             nvim_lsp = lsp_label,
-            luasnip  = "[Snippets]", -- Sincronizado semánticamente con <A-s>
-            path     = "[Files]",    -- Sincronizado semánticamente con <A-f>
-            buffer   = "[Words]",    -- Sincronizado semánticamente con <A-w>
+            luasnip = current_filter == "diy" and "[DIY]" or "[Snips]",
+            path = "[Files]",
+            buffer = "[Words]",
           })[entry.source.name]
           return vim_item
         end,
@@ -197,7 +264,10 @@ return {
     config = function(_, opts)
       local cmp = require "cmp"
       cmp.setup(opts)
-      cmp.setup.cmdline("/", { mapping = cmp.mapping.preset.cmdline(), sources = { { name = "buffer" } } })
+      cmp.setup.cmdline("/", {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = { { name = "buffer" } },
+      })
       cmp.setup.cmdline(":", {
         mapping = cmp.mapping.preset.cmdline(),
         sources = cmp.config.sources({ { name = "path" } }, { { name = "cmdline" } }),
@@ -210,7 +280,7 @@ return {
     version = "*", -- Usa la última versión estable
     event = "VeryLazy",
     config = function()
-      require("nvim-surround").setup({})
+      require("nvim-surround").setup {}
     end,
   },
 
@@ -245,32 +315,45 @@ return {
     event = "VeryLazy",
   },
 
-
   {
     "karb94/neoscroll.nvim",
     keys = { "<C-u>", "<C-d>", "<C-b>", "<C-f>", "zt", "zz", "zb" },
 
     config = function()
-      local neoscroll = require('neoscroll')
-      neoscroll.setup({
+      local neoscroll = require "neoscroll"
+      neoscroll.setup {
         hide_cursor = true,
         stop_eof = true,
         respect_scrolloff = true,
         easing_function = "quadratic",
-      })
+      }
 
       -- Esta es la nueva forma oficial en lugar de set_mappings
       local keymap = {
-        ["<C-u>"] = function() neoscroll.ctrl_u({ duration = 250 }) end,
-        ["<C-d>"] = function() neoscroll.ctrl_d({ duration = 250 }) end,
-        ["<C-b>"] = function() neoscroll.ctrl_b({ duration = 450 }) end,
-        ["<C-f>"] = function() neoscroll.ctrl_f({ duration = 450 }) end,
-        ["zt"]    = function() neoscroll.zt({ half_win_duration = 250 }) end,
-        ["zz"]    = function() neoscroll.zz({ half_win_duration = 250 }) end,
-        ["zb"]    = function() neoscroll.zb({ half_win_duration = 250 }) end,
+        ["<C-u>"] = function()
+          neoscroll.ctrl_u { duration = 250 }
+        end,
+        ["<C-d>"] = function()
+          neoscroll.ctrl_d { duration = 250 }
+        end,
+        ["<C-b>"] = function()
+          neoscroll.ctrl_b { duration = 450 }
+        end,
+        ["<C-f>"] = function()
+          neoscroll.ctrl_f { duration = 450 }
+        end,
+        ["zt"] = function()
+          neoscroll.zt { half_win_duration = 250 }
+        end,
+        ["zz"] = function()
+          neoscroll.zz { half_win_duration = 250 }
+        end,
+        ["zb"] = function()
+          neoscroll.zb { half_win_duration = 250 }
+        end,
       }
 
-      local modes = { 'n', 'v', 'x' }
+      local modes = { "n", "v", "x" }
       for key, func in pairs(keymap) do
         vim.keymap.set(modes, key, func)
       end
@@ -279,13 +362,13 @@ return {
 
   {
     "mbbill/undotree",
-    lazy = false, 
+    lazy = false,
   },
   {
     "windwp/nvim-autopairs",
     event = "InsertEnter",
     config = function()
-      require("nvim-autopairs").setup({})
+      require("nvim-autopairs").setup {}
     end,
   },
 
@@ -302,7 +385,7 @@ return {
     dependencies = "nvim-treesitter/nvim-treesitter",
     event = "BufReadPost",
     config = function()
-      local select = require("nvim-treesitter-textobjects.select")
+      local select = require "nvim-treesitter-textobjects.select"
       local keymaps = {
         ["af"] = "@function.outer",
         ["if"] = "@function.inner",
@@ -336,7 +419,7 @@ return {
         i = {
           ["<C-j>"] = require("telescope.actions").move_selection_next,
           ["<C-k>"] = require("telescope.actions").move_selection_previous,
-        }
+        },
       }
     end,
   },
@@ -345,16 +428,16 @@ return {
     "L3MON4D3/LuaSnip",
     config = function(_, opts)
       require("luasnip").setup(opts)
-      require("luasnip.loaders.from_lua").load({ paths = "~/.config/nvchad/lua/snippets" })
+      require("luasnip.loaders.from_vscode").load()
+      require("luasnip.loaders.from_lua").load { paths = "~/.config/nvchad/lua/snippets" }
     end,
   },
-
 
   {
     "mfussenegger/nvim-lint",
     event = { "BufReadPost", "BufNewFile", "BufWritePost" },
     config = function()
-      local lint = require("lint")
+      local lint = require "lint"
 
       -- Conectamos los archivos HTML con el htmlhint que instalaste en Mason
       lint.linters_by_ft = {
@@ -369,5 +452,4 @@ return {
       })
     end,
   },
-
 }

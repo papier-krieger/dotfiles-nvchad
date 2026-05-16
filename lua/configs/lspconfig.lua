@@ -2,18 +2,33 @@
 local on_attach = require("nvchad.configs.lspconfig").on_attach
 local on_init = require("nvchad.configs.lspconfig").on_init
 local capabilities = require("nvchad.configs.lspconfig").capabilities
--- Lista de servidores a configurar
-local servers = { "html", "cssls", "ts_ls", "tailwindcss", "emmet_ls", "bashls" }
--- Nueva forma de configurar servidores (sin usar require('lspconfig'))
+
+-- Servidores simples sin configuración extra
+local servers = { "cssls", "ts_ls", "tailwindcss", "bashls" }
+
 for _, lsp in ipairs(servers) do
   vim.lsp.config(lsp, {
     on_attach = on_attach,
     on_init = on_init,
     capabilities = capabilities,
-    -- Configuración extra solo para Emmet
-    filetypes = lsp == "emmet_ls" and { 
-      "html", "css", "javascriptreact", "typescriptreact", "sass", "scss", "less" 
-    } or nil,
   })
   vim.lsp.enable(lsp)
 end
+
+-- HTML LSP — autocompletado inteligente de tags y atributos
+vim.lsp.config("html", {
+  on_attach = on_attach,
+  on_init = on_init,
+  capabilities = capabilities,
+  filetypes = { "html" },
+})
+vim.lsp.enable("html")
+
+-- Emmet — solo expansión de abreviaciones
+vim.lsp.config("emmet_ls", {
+  on_attach = on_attach,
+  on_init = on_init,
+  capabilities = capabilities,
+  filetypes = { "html", "css", "javascriptreact", "typescriptreact", "sass", "scss", "less" },
+})
+vim.lsp.enable("emmet_ls")
