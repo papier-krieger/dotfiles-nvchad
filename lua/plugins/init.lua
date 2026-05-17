@@ -45,9 +45,12 @@ return {
         {
           name = "nvim_lsp",
           entry_filter = function(entry)
-            -- excluir snippets del LSP siempre
+            -- excluir snippets del LSP siempre, excepto emmet_ls
             if entry:get_kind() == kind.Snippet then
-              return false
+              local client_name = entry.source.source.client.name
+              if client_name ~= "emmet_ls" then
+                return false
+              end
             end
 
             if current_filter == nil or current_filter == "nvim_lsp" then
