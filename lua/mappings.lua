@@ -98,27 +98,23 @@ end, { desc = "Buffer: Siguiente" })
 map("n", "<A-j>", "<Down>", { desc = "Interfaz: Bajar" })
 map("n", "<A-k>", "<Up>", { desc = "Interfaz: Subir" })
 
-map("n", "<A-n>", function()
-  vim.diagnostic.jump { count = 1, severity = { min = vim.diagnostic.severity.HINT } }
-end, { desc = "LSP/Lint: Siguiente error o advertencia" })
-
-map("n", "<A-p>", function()
-  vim.diagnostic.jump { count = -1, severity = { min = vim.diagnostic.severity.HINT } }
-end, { desc = "LSP/Lint: Error o advertencia anterior" })
-
-map("n", "<A-d>", function()
-  vim.diagnostic.open_float()
-end, { desc = "LSP/Lint: Ver detalle del error" })
-
-map("n", "<leader>d", "<cmd>ConformInfo<cr>", { desc = "Formatter: Ver reporte de fallos (Conform)" })
-
--- Navegación Inteligente (insert mode)
+-- Smart jump / Navegación Inteligente (normal + insert mode)
 map("i", "<A-n>", function()
   require("utils.nav").smart_jump "next"
-end, { silent = true, desc = "Nav: Siguiente estructura" })
+end, { desc = "Smart jump: siguiente elemento" })
 map("i", "<A-p>", function()
   require("utils.nav").smart_jump "prev"
-end, { silent = true, desc = "Nav: Estructura anterior" })
+end, { desc = "Smart jump: elemento anterior" })
+
+map("n", "<A-n>", function()
+  vim.cmd "startinsert"
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<A-n>", true, false, true), "i", false)
+end, { desc = "Smart jump: siguiente elemento (normal mode)" })
+
+map("n", "<A-p>", function()
+  vim.cmd "startinsert"
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<A-p>", true, false, true), "i", false)
+end, { desc = "Smart jump: elemento anterior (normal mode)" })
 
 -- 2. CAPA ALT + SHIFT: ACCIÓN ESTRUCTURAL (Drag & Move)
 map("n", "<A-J>", "<cmd>m .+1<cr>==", { desc = "Drag line down" })
@@ -149,6 +145,16 @@ end, { silent = true, desc = 'Insert: siguiente ""' })
 map("i", "<A-P>", function()
   require("utils.nav").quote_jump "prev"
 end, { silent = true, desc = 'Insert: anterior ""' })
+
+map("n", "<A-N>", function()
+  vim.cmd "startinsert"
+  require("utils.nav").quote_jump "next"
+end, { desc = "Quote jump next (normal mode)" })
+
+map("n", "<A-P>", function()
+  vim.cmd "startinsert"
+  require("utils.nav").quote_jump "prev"
+end, { desc = "Quote jump prev (normal mode)" })
 
 -- === COMANDO OPENALL ===
 vim.api.nvim_create_user_command("OpenAll", function(opts)
@@ -227,3 +233,15 @@ vim.api.nvim_create_user_command("H", function()
   vim.opt.shortmess:remove "A"
   print "Modo Historial: Usa Tab para cambiar a la Terminal"
 end, {})
+
+-- Diagnostics navigation
+map("n", "]d", function()
+  vim.diagnostic.jump { count = 1, severity = { min = vim.diagnostic.severity.HINT } }
+end, { desc = "LSP/Lint: Siguiente error o advertencia" })
+map("n", "[d", function()
+  vim.diagnostic.jump { count = -1, severity = { min = vim.diagnostic.severity.HINT } }
+end, { desc = "LSP/Lint: Error o advertencia anterior" })
+map("n", "<leader>dd", function()
+  vim.diagnostic.open_float()
+end, { desc = "LSP/Lint: Ver detalle del error" })
+map("n", "<leader>di", "<cmd>ConformInfo<cr>", { desc = "Formatter: Ver reporte de fallos (Conform)" })
