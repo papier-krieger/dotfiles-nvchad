@@ -198,12 +198,14 @@ return {
       -- 3. FILTROS ALT
       local function create_filter(filter_target)
         return function()
+          if filter_target == "path" then
+            require "cmp_path"
+          end
           if cmp.visible() then
             cmp.close()
           end
           current_filter = filter_target
           cmp.complete()
-
           if SELECT_MODE and filter_target == "diy" then
             vim.defer_fn(function()
               if cmp.visible() then
