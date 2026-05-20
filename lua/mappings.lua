@@ -23,7 +23,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 map("i", "jk", "<cmd>stopinsert<cr>", { desc = "Insert → Normal mode" })
 
 -- === HOW TO GET OUT OF TERMINAL-MODE ===
-map("t", "<Esc>", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
+map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
 map("t", "jk", "<C-\\><C-n>", { desc = "Terminal: exit to normal mode" })
 
 -- === ESTRUCTURAS SIMPLES ===
@@ -168,8 +168,16 @@ vim.api.nvim_create_user_command("OpenAll", function(opts)
   end
 
   local files_to_open = {}
-  local pattern = (opts.args ~= "") and ("**/*." .. opts.args) or "**/*"
-  local all_items = vim.fn.globpath(cwd, pattern, false, true)
+  local all_items = {}
+
+  if opts.args ~= "" then
+    local exts = vim.split(opts.args, "%s+")
+    for _, ext in ipairs(exts) do
+      vim.list_extend(all_items, vim.fn.globpath(cwd, "**/*." .. ext, false, true))
+    end
+  else
+    all_items = vim.fn.globpath(cwd, "**/*", false, true)
+  end
 
   for _, item in ipairs(all_items) do
     if vim.fn.isdirectory(item) == 0 and not item:match "node_modules/" and not item:match "%.git/" then
@@ -186,7 +194,7 @@ vim.api.nvim_create_user_command("OpenAll", function(opts)
   end
 end, { nargs = "?" })
 
-map("n", "<leader>oa", ":OpenAll<CR>", { desc = "Abrir todos los archivos" })
+map("n", "<leader>oa", ":OpenAll html css js<CR>", { desc = "Abrir todos los HTML, CSS y JS" })
 map("n", "<leader>oh", ":OpenAll html<CR>", { desc = "Abrir todos los HTML" })
 map("n", "<leader>oc", ":OpenAll css<CR>", { desc = "Abrir todos los CSS" })
 map("n", "<leader>oj", ":OpenAll js<CR>", { desc = "Abrir todos los JS" })

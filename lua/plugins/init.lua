@@ -278,6 +278,8 @@ return {
     end,
   },
 
+  { "hrsh7th/cmp-path" },
+
   {
     "kylechui/nvim-surround",
     version = "*", -- Usa la última versión estable
