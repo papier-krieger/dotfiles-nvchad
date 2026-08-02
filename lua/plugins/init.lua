@@ -280,8 +280,6 @@ return {
     end,
   },
 
-  { "hrsh7th/cmp-path" },
-
   {
     "kylechui/nvim-surround",
     version = "*", -- Usa la última versión estable
@@ -458,5 +456,31 @@ return {
         end,
       })
     end,
+  },
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    ft = { "markdown" },
+    dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+    opts = {},
+  },
+
+  {
+    "folke/zen-mode.nvim",
+    cmd = "ZenMode",
+    opts = {
+      window = {
+        width = 90,
+        options = {
+          number = false,
+          relativenumber = false,
+        },
+      },
+      plugins = {
+        options = {
+          enabled = true,
+          laststatus = 0, -- hide the statusline in zen mode
+        },
+      },
+    },
   },
 }
